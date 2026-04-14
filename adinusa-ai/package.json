@@ -1,0 +1,59 @@
+{
+  "name": "adinusa-ai",
+  "displayName": "Adinusa AI",
+  "description": "AI Coding Agent inside Visual Studio Code powered by GLM-5.1",
+  "version": "0.1.0",
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "adinusa-ai.openChat", "title": "Adinusa AI: Open Chat" },
+      { "command": "adinusa-ai.ask", "title": "Adinusa AI: Ask" },
+      { "command": "adinusa-ai.generate", "title": "Adinusa AI: Generate Code" },
+      { "command": "adinusa-ai.explain", "title": "Adinusa AI: Explain Selection" },
+      { "command": "adinusa-ai.fix", "title": "Adinusa AI: Fix Selection" }
+    ],
+    "keybindings": [
+      { "command": "adinusa-ai.openChat", "key": "ctrl+shift+a", "mac": "cmd+shift+a" },
+      { "command": "adinusa-ai.generate", "key": "ctrl+shift+g", "mac": "cmd+shift+g", "when": "editorTextFocus" },
+      { "command": "adinusa-ai.explain", "key": "ctrl+shift+e", "mac": "cmd+shift+e", "when": "editorHasSelection" },
+      { "command": "adinusa-ai.fix", "key": "ctrl+shift+f", "mac": "cmd+shift+f", "when": "editorHasSelection" }
+    ],
+    "configuration": {
+      "title": "Adinusa AI",
+      "properties": {
+        "adinusaAi.backendUrl": {
+          "type": "string",
+          "default": "http://localhost:3002",
+          "description": "Backend API URL"
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        { "command": "adinusa-ai.explain", "when": "editorHasSelection", "group": "adinusa@1" },
+        { "command": "adinusa-ai.fix", "when": "editorHasSelection", "group": "adinusa@2" },
+        { "command": "adinusa-ai.generate", "group": "adinusa@3" }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "npm run check-types && node esbuild.js --production",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "@types/node": "20.x",
+    "typescript": "^5.4.0",
+    "esbuild": "^0.21.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0"
+  }
+}
