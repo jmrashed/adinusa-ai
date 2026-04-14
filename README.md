@@ -4,9 +4,9 @@
 
 # Adinusa AI
 
-**An autonomous AI coding agent inside Visual Studio Code, powered by GLM-4.**
+**An autonomous AI coding agent inside Visual Studio Code, powered by multiple LLM providers.**
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/jmrashed/adinusa-ai/releases)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/jmrashed/adinusa-ai/releases)
 [![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.90.0-007ACC?logo=visualstudiocode)](https://code.visualstudio.com/)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-339933?logo=nodedotjs)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
@@ -20,7 +20,7 @@
 
 ## Overview
 
-Adinusa AI is a full-stack VS Code extension that brings an autonomous AI software engineering agent directly into your editor. It connects to a local Express backend that orchestrates a multi-step reasoning loop powered by the [Zhipu GLM-4](https://open.bigmodel.cn/) language model.
+Adinusa AI is a full-stack VS Code extension that brings an autonomous AI software engineering agent directly into your editor. It connects to a local Express backend that orchestrates a multi-step reasoning loop powered by your choice of LLM provider — **GLM-4, OpenAI GPT-4, Anthropic Claude, Google Gemini, or Ollama (local models)**.
 
 Unlike simple autocomplete tools, Adinusa AI can **plan**, **reason**, **write files**, and **execute terminal commands** — all from a natural language prompt inside VS Code.
 
@@ -31,11 +31,16 @@ Unlike simple autocomplete tools, Adinusa AI can **plan**, **reason**, **write f
 | Feature | Description |
 |---|---|
 | **Chat Panel** | Full markdown-rendered chat UI inside VS Code (Ctrl+Shift+A) |
+| **Intent Selector** | Switch between Chat, Generate, Explain, and Fix modes inside the sidebar |
 | **Code Generation** | Generate functions, APIs, and full modules from a prompt |
 | **Code Explanation** | Explain any selected code in plain language |
 | **Code Fixing** | Fix selected buggy or broken code automatically |
 | **Editor Context** | Sends active file content and selection to the AI automatically |
-| **Agent Actions** | AI can create files and run terminal commands with your approval |
+| **Active File Indicator** | Toolbar shows the currently open file; updates on every tab switch |
+| **Agent Actions** | Inline Apply / Skip card inside the AI reply — no popup interruption |
+| **Copy Code** | One-click copy button on every code block in AI replies |
+| **Timestamps** | Every message shows the time it was sent |
+| **Multi-Provider** | Switch between GLM-4, GPT-4, Claude, Gemini, or Ollama at any time |
 | **Status Bar** | One-click access to the chat panel from the VS Code status bar |
 | **Keybindings** | Full keyboard shortcut support for all commands |
 
@@ -52,8 +57,8 @@ Unlike simple autocomplete tools, Adinusa AI can **plan**, **reason**, **write f
 │  │ (Webview)│  │ Ask      │  │ Context  │  │
 │  │ Markdown │  │ Generate │  │ Editor   │  │
 │  │ Rendering│  │ Explain  │  │ Actions  │  │
-│  └────┬─────┘  │ Fix      │  └──────────┘  │
-│       │        └────┬─────┘                │
+│  └────┬─────┘  │ Fix      │  │ Model    │  │
+│       │        │ Switch   │  └──────────┘  │
 └───────┼─────────────┼────────────────────--┘
         │             │  HTTP POST /ai/chat
         ▼             ▼
@@ -62,7 +67,7 @@ Unlike simple autocomplete tools, Adinusa AI can **plan**, **reason**, **write f
 │                                             │
 │  ┌──────────────────────────────────────┐   │
 │  │           Agent Loop                 │   │
-│  │  User Message → GLM-4 → Parse JSON   │   │
+│  │  User Message → LLM → Parse JSON     │   │
 │  │  → Execute Tools → Feedback → Repeat │   │
 │  └──────────────────────────────────────┘   │
 │                                             │
@@ -71,10 +76,11 @@ Unlike simple autocomplete tools, Adinusa AI can **plan**, **reason**, **write f
 └───────────────────┬─────────────────────────┘
                     │  HTTPS
                     ▼
-        ┌───────────────────────┐
-        │   Zhipu GLM-4 API     │
-        │  open.bigmodel.cn     │
-        └───────────────────────┘
+        ┌───────────────────────────────────┐
+        │   LLM Providers                   │
+        │   GLM-4 · GPT-4 · Claude          │
+        │   Gemini · Ollama (local)         │
+        └───────────────────────────────────┘
 ```
 
 ---
@@ -88,14 +94,17 @@ adinusa-ai/                         # Monorepo root
 │   ├── src/
 │   │   ├── extension.ts            # Entry point + status bar
 │   │   ├── commands/
-│   │   │   └── index.ts            # Ask, Generate, Explain, Fix
+│   │   │   └── index.ts            # Ask, Generate, Explain, Fix, SwitchProvider
 │   │   ├── services/
 │   │   │   ├── api.service.ts      # HTTP client → backend
 │   │   │   ├── context.service.ts  # Active file + selection reader
 │   │   │   ├── editor.service.ts   # Insert / replace code in editor
-│   │   │   └── action.service.ts   # Apply agent file/terminal actions
+│   │   │   ├── action.service.ts   # Apply agent file/terminal actions
+│   │   │   └── model.service.ts    # Provider config + validation
 │   │   ├── ui/
-│   │   │   └── panel.ts            # Webview chat panel + markdown renderer
+│   │   │   ├── panel.ts            # Floating webview chat panel
+│   │   │   ├── chat.view.ts        # Sidebar webview view provider
+│   │   │   └── manual.ts           # Manual/help panel
 │   │   ├── config/
 │   │   │   └── settings.ts         # VS Code settings reader
 │   │   └── utils/
@@ -116,10 +125,11 @@ adinusa-ai/                         # Monorepo root
 │   │   │   └── ai.routes.js        # POST /ai/chat
 │   │   ├── services/
 │   │   │   ├── agent.service.js    # Multi-step agent loop
-│   │   │   └── llm.service.js      # GLM-4 API wrapper
+│   │   │   └── llm.service.js      # Multi-provider LLM router
 │   │   ├── tools/
 │   │   │   ├── file.tool.js        # Safe file read/write
 │   │   │   └── terminal.tool.js    # Sandboxed command execution
+│   │   ├── memory/                 # Agent memory (future use)
 │   │   ├── prompts/
 │   │   │   └── system.prompt.js    # Agent system prompt
 │   │   └── utils/
@@ -148,7 +158,7 @@ adinusa-ai/                         # Monorepo root
 
 - [Node.js](https://nodejs.org/) >= 18.0.0
 - [VS Code](https://code.visualstudio.com/) >= 1.90.0
-- A [Zhipu AI API key](https://open.bigmodel.cn/) (free tier available)
+- An API key for at least one supported provider (see [Configuration](#configuration))
 
 ### 1. Clone the repository
 
@@ -163,14 +173,32 @@ cd adinusa-ai
 cp backend/.env.example backend/.env
 ```
 
-Edit `backend/.env` and set your API key:
+Edit `backend/.env` and set your API key(s):
 
 ```env
-ZHIPU_API_KEY=your_api_key_here
 PORT=3002
-GLM_MODEL=glm-4-flash
 MAX_AGENT_ITERATIONS=5
 RATE_LIMIT=30
+ALLOWED_ORIGINS=vscode-webview://*
+
+# Default provider (glm | openai | claude | gemini | ollama)
+DEFAULT_PROVIDER=glm
+
+# Zhipu GLM
+ZHIPU_API_KEY=your_glm_api_key_here
+GLM_MODEL=glm-4-flash
+
+# OpenAI
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Anthropic Claude
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# Google Gemini
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Ollama (local — no key required)
+OLLAMA_BASE_URL=http://localhost:11434
 ```
 
 ### 3. Install dependencies
@@ -213,23 +241,26 @@ Type any message and press `Enter`. The AI responds with markdown-rendered outpu
 | Command | Shortcut | Description |
 |---|---|---|
 | `Adinusa AI: Open Chat` | `Ctrl+Shift+A` | Open the chat panel |
-| `Adinusa AI: Ask` | — | Quick question via input box |
+| `Adinusa AI: Ask` | `Ctrl+Shift+/` | Quick question via input box |
 | `Adinusa AI: Generate Code` | `Ctrl+Shift+G` | Generate code at cursor |
 | `Adinusa AI: Explain Selection` | `Ctrl+Shift+E` | Explain selected code |
 | `Adinusa AI: Fix Selection` | `Ctrl+Shift+F` | Fix selected code |
+| `Adinusa AI: Switch AI Provider` | `Ctrl+Shift+P` | Switch the active LLM provider |
+| `Adinusa AI: Open Manual` | `Ctrl+Shift+M` | Open the help/manual panel |
 
 All commands are also available via right-click context menu in the editor.
 
 ### Agent Actions
 
-When the AI decides to create files or run commands, VS Code shows a confirmation prompt:
+When the AI decides to create files or run commands, an inline confirmation card appears directly inside the AI reply bubble:
 
 ```
-Adinusa AI wants to execute 2 action(s). Apply?   [Apply] [Skip]
+⚡ AI wants to run 2 action(s).
+[ Apply ]  [ Skip ]
 ```
 
 - **Apply** — files are created and opened in the editor; commands run in a new terminal
-- **Skip** — actions are ignored, only the text reply is shown
+- **Skip** — actions are discarded; only the text reply is kept
 
 ---
 
@@ -244,10 +275,17 @@ Send a message to the agent.
 ```json
 {
   "message": "Create a Node.js Express REST API with CRUD for users",
+  "intent": "generate",
   "context": {
     "fileName": "/path/to/current/file.ts",
-    "file": "// current file content...",
-    "selection": "// selected code (optional)"
+    "file": "// current file content (truncated to 4000 chars)",
+    "selection": "// selected code (optional)",
+    "intent": "generate"
+  },
+  "modelConfig": {
+    "provider": "openai",
+    "apiKey": "<your_key>",
+    "model": "gpt-4o"
   }
 }
 ```
@@ -271,9 +309,9 @@ Send a message to the agent.
 
 | Status | Meaning |
 |---|---|
-| `400` | Missing or invalid `message` field |
+| `400` | Missing/invalid `message`, or unknown `provider` |
 | `429` | Rate limit exceeded (30 req/min) |
-| `500` | Agent or LLM error |
+| `500` | Agent or LLM error (message forwarded from provider) |
 
 ### `GET /health`
 
@@ -287,22 +325,38 @@ Send a message to the agent.
 
 ### VS Code Settings
 
+Open VS Code Settings (`Ctrl+,`) and search for `Adinusa` to configure, or use `Adinusa AI: Switch AI Provider` command.
+
 | Setting | Default | Description |
 |---|---|---|
 | `adinusaAi.backendUrl` | `http://localhost:3002` | Backend API URL |
-
-Open VS Code Settings (`Ctrl+,`) and search for `Adinusa` to configure.
+| `adinusaAi.provider` | `glm` | Active provider: `glm` · `openai` · `claude` · `gemini` · `ollama` |
+| `adinusaAi.glm.apiKey` | — | Zhipu AI API key |
+| `adinusaAi.glm.model` | `glm-4-flash` | GLM model name |
+| `adinusaAi.openai.apiKey` | — | OpenAI API key |
+| `adinusaAi.openai.model` | `gpt-4o` | OpenAI model name |
+| `adinusaAi.claude.apiKey` | — | Anthropic API key |
+| `adinusaAi.claude.model` | `claude-3-5-sonnet-20241022` | Claude model name |
+| `adinusaAi.gemini.apiKey` | — | Google AI API key |
+| `adinusaAi.gemini.model` | `gemini-1.5-pro` | Gemini model name |
+| `adinusaAi.ollama.baseUrl` | `http://localhost:11434` | Ollama base URL |
+| `adinusaAi.ollama.model` | `llama3` | Ollama model name |
 
 ### Backend Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `ZHIPU_API_KEY` | — | **Required.** Your Zhipu AI API key |
+| `DEFAULT_PROVIDER` | `glm` | Default LLM provider |
 | `PORT` | `3002` | Server port |
-| `GLM_MODEL` | `glm-4-flash` | GLM model to use |
 | `MAX_AGENT_ITERATIONS` | `5` | Max agent reasoning steps (hard cap: 10) |
 | `RATE_LIMIT` | `30` | Max requests per minute per IP |
 | `ALLOWED_ORIGINS` | `vscode-webview://*` | Comma-separated CORS origins |
+| `ZHIPU_API_KEY` | — | Zhipu GLM API key |
+| `GLM_MODEL` | `glm-4-flash` | GLM model to use |
+| `OPENAI_API_KEY` | — | OpenAI API key |
+| `ANTHROPIC_API_KEY` | — | Anthropic Claude API key |
+| `GEMINI_API_KEY` | — | Google Gemini API key |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama base URL |
 
 ---
 
@@ -347,12 +401,18 @@ docker run -p 3002:3002 --env-file .env adinusa-ai-backend
 
 - [ ] Streaming responses (SSE / WebSocket)
 - [ ] RAG — project-level context memory (FAISS / Pinecone)
-- [ ] Multi-model support (GPT-4, Claude, Ollama)
 - [ ] Git integration (auto-commit, diff review)
 - [ ] Error fixing loop (run → catch error → auto-fix)
 - [ ] VS Code Marketplace publish
 - [ ] Voice input support
 - [ ] Team collaboration mode
+- [x] Multi-provider support (GLM-4, GPT-4, Claude, Gemini, Ollama)
+- [x] Intent selector (Chat / Generate / Explain / Fix)
+- [x] Inline action confirmation in chat
+- [x] Copy code button on code blocks
+- [x] Message timestamps
+- [x] Active file context indicator
+- [x] Backend health check banner with retry
 
 ---
 
@@ -370,6 +430,27 @@ cd adinusa-ai && npm run check-types
 # Commit and open a PR
 git commit -m "feat: your feature description"
 ```
+
+---
+
+## Release Notes
+
+### 0.2.0 — 2026-04-15
+
+- Intent selector (Chat / Generate / Explain / Fix) in the sidebar chat toolbar
+- Inline action confirmation card replaces the VS Code notification popup
+- Copy button on every fenced code block
+- Animated thinking indicator (three bouncing dots)
+- Timestamp on every message
+- Active file context indicator in the toolbar, updated on every editor tab switch
+- Clear chat button
+- Backend health check banner with Retry button
+- Auto-focus and auto-resize textarea
+- Fixed `msg` variable shadowing bug in the webview message handler
+
+### 0.1.0 — 2025-04-15
+
+- Initial release
 
 ---
 

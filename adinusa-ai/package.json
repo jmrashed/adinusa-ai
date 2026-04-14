@@ -30,18 +30,78 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "adinusa-ai",
+          "title": "Adinusa AI",
+          "icon": "assets/sidebar-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "adinusa-ai": [
+        {
+          "type": "webview",
+          "id": "adinusa-ai.chatView",
+          "name": "Chat",
+          "icon": "assets/sidebar-icon.svg",
+          "contextualTitle": "Adinusa AI"
+        }
+      ]
+    },
     "commands": [
       { "command": "adinusa-ai.openChat", "title": "Adinusa AI: Open Chat" },
       { "command": "adinusa-ai.ask", "title": "Adinusa AI: Ask" },
       { "command": "adinusa-ai.generate", "title": "Adinusa AI: Generate Code" },
       { "command": "adinusa-ai.explain", "title": "Adinusa AI: Explain Selection" },
-      { "command": "adinusa-ai.fix", "title": "Adinusa AI: Fix Selection" }
+      { "command": "adinusa-ai.fix", "title": "Adinusa AI: Fix Selection" },
+      { "command": "adinusa-ai.switchProvider", "title": "Adinusa AI: Switch AI Provider" },
+      { "command": "adinusa-ai.openManual", "title": "Adinusa AI: Open Manual" }
     ],
     "keybindings": [
-      { "command": "adinusa-ai.openChat", "key": "ctrl+shift+a", "mac": "cmd+shift+a" },
-      { "command": "adinusa-ai.generate", "key": "ctrl+shift+g", "mac": "cmd+shift+g", "when": "editorTextFocus" },
-      { "command": "adinusa-ai.explain", "key": "ctrl+shift+e", "mac": "cmd+shift+e", "when": "editorHasSelection" },
-      { "command": "adinusa-ai.fix", "key": "ctrl+shift+f", "mac": "cmd+shift+f", "when": "editorHasSelection" }
+      {
+        "command": "adinusa-ai.openChat",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "adinusa-ai.ask",
+        "key": "ctrl+shift+slash",
+        "mac": "cmd+shift+slash",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "adinusa-ai.generate",
+        "key": "ctrl+shift+g",
+        "mac": "cmd+shift+g",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "adinusa-ai.explain",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "adinusa-ai.fix",
+        "key": "ctrl+shift+f",
+        "mac": "cmd+shift+f",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "adinusa-ai.switchProvider",
+        "key": "ctrl+shift+p",
+        "mac": "cmd+shift+p",
+        "when": "!terminalFocus && !editorTextFocus"
+      },
+      {
+        "command": "adinusa-ai.openManual",
+        "key": "ctrl+shift+m",
+        "mac": "cmd+shift+m",
+        "when": "!terminalFocus"
+      }
     ],
     "configuration": {
       "title": "Adinusa AI",
@@ -50,6 +110,69 @@
           "type": "string",
           "default": "http://localhost:3002",
           "description": "Backend API URL"
+        },
+        "adinusaAi.provider": {
+          "type": "string",
+          "default": "glm",
+          "enum": ["glm", "openai", "claude", "gemini", "ollama"],
+          "enumDescriptions": [
+            "Zhipu GLM-4 (default)",
+            "OpenAI GPT-4",
+            "Anthropic Claude",
+            "Google Gemini",
+            "Ollama (local LLaMA / any local model)"
+          ],
+          "description": "AI provider to use"
+        },
+        "adinusaAi.glm.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Zhipu AI API key (https://open.bigmodel.cn)"
+        },
+        "adinusaAi.glm.model": {
+          "type": "string",
+          "default": "glm-4-flash",
+          "description": "GLM model name (e.g. glm-4-flash, glm-4)"
+        },
+        "adinusaAi.openai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key (https://platform.openai.com)"
+        },
+        "adinusaAi.openai.model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "description": "OpenAI model name (e.g. gpt-4o, gpt-4-turbo, gpt-3.5-turbo)"
+        },
+        "adinusaAi.claude.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic API key (https://console.anthropic.com)"
+        },
+        "adinusaAi.claude.model": {
+          "type": "string",
+          "default": "claude-3-5-sonnet-20241022",
+          "description": "Claude model name (e.g. claude-3-5-sonnet-20241022, claude-3-opus-20240229)"
+        },
+        "adinusaAi.gemini.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Google AI API key (https://aistudio.google.com)"
+        },
+        "adinusaAi.gemini.model": {
+          "type": "string",
+          "default": "gemini-1.5-pro",
+          "description": "Gemini model name (e.g. gemini-1.5-pro, gemini-1.5-flash)"
+        },
+        "adinusaAi.ollama.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama base URL for local models"
+        },
+        "adinusaAi.ollama.model": {
+          "type": "string",
+          "default": "llama3",
+          "description": "Ollama model name (e.g. llama3, codellama, mistral, deepseek-coder)"
         }
       }
     },
@@ -57,7 +180,8 @@
       "editor/context": [
         { "command": "adinusa-ai.explain", "when": "editorHasSelection", "group": "adinusa@1" },
         { "command": "adinusa-ai.fix", "when": "editorHasSelection", "group": "adinusa@2" },
-        { "command": "adinusa-ai.generate", "group": "adinusa@3" }
+        { "command": "adinusa-ai.generate", "group": "adinusa@3" },
+        { "command": "adinusa-ai.openManual", "group": "adinusa@4" }
       ]
     }
   },

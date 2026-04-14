@@ -1,4 +1,4 @@
-const { callGLM } = require('./llm.service');
+const { callLLM } = require('./llm.service');
 const { AGENT_SYSTEM_PROMPT } = require('../prompts/system.prompt');
 const { writeFile, readFile } = require('../tools/file.tool');
 const { runCommand } = require('../tools/terminal.tool');
@@ -6,8 +6,10 @@ const logger = require('../utils/logger');
 
 const MAX_ITERATIONS = Math.min(parseInt(process.env.MAX_AGENT_ITERATIONS ?? '5'), 10);
 
-function buildUserMessage(message, context) {
-  let content = message;
+const NO_ACTION_INTENTS = ['explain', 'answer'];
+
+function buildUserMessage(message, context, intent) {
+  let content = intent ? `[Intent: ${intent}]\n${message}` : message;
   if (context?.fileName) content += `\n\nFile: ${context.fileName}`;
   if (context?.selection) {
     content += `\n\nSelected code:\n\`\`\`\n${context.selection.slice(0, 2000)}\n\`\`\``;
@@ -23,12 +25,14 @@ function parseAgentResponse(raw) {
     const parsed = JSON.parse(jsonMatch ? jsonMatch[1] : raw);
     return {
       thought: parsed.thought ?? '',
+      intent: parsed.intent ?? '',
       plan: Array.isArray(parsed.plan) ? parsed.plan : [],
       actions: Array.isArray(parsed.actions) ? parsed.actions : [],
       final_answer: parsed.final_answer ?? '',
     };
   } catch {
-    return { thought: '', plan: [], actions: [], final_answer: raw };
+    logger.warn(`[Agent] JSON parse failed, raw length: ${raw.length}`);
+    return { thought: '', intent: '', plan: [], actions: [], final_answer: raw };
   }
 }
 
@@ -48,20 +52,25 @@ async function executeTool(action) {
   }
 }
 
-async function runAgent(message, context) {
+async function runAgent(message, context, modelConfig = {}) {
+  const intent = context?.intent;
   const messages = [
     { role: 'system', content: AGENT_SYSTEM_PROMPT },
-    { role: 'user', content: buildUserMessage(message, context) },
+    { role: 'user', content: buildUserMessage(message, context, intent) },
   ];
 
-  let lastParsed = { thought: '', plan: [], actions: [], final_answer: '' };
+  let lastParsed = { thought: '', intent: '', plan: [], actions: [], final_answer: '' };
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
-    const raw = await callGLM(messages);
+    const raw = await callLLM(messages, modelConfig);
     const parsed = parseAgentResponse(raw);
     lastParsed = parsed;
 
-    logger.info(`[Agent] Iteration ${i + 1} | thought: ${parsed.thought?.slice(0, 80)}`);
+    logger.info(`[Agent:${modelConfig.provider || 'glm'}] Iteration ${i + 1} | intent: ${parsed.intent} | thought: ${parsed.thought?.slice(0, 80)}`);
+
+    if (NO_ACTION_INTENTS.includes(intent) || NO_ACTION_INTENTS.includes(parsed.intent)) {
+      return { reply: parsed.final_answer || raw, actions: [] };
+    }
 
     if (!parsed.actions || parsed.actions.length === 0) break;
 

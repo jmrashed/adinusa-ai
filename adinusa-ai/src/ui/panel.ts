@@ -31,7 +31,7 @@ export class ChatPanel {
     this._panel.webview.onDidReceiveMessage(async (msg) => {
       if (msg.type !== 'chat') return;
       try {
-        const res = await sendChat({ message: msg.text, context: getEditorContext() });
+        const res = await sendChat({ message: msg.text, intent: 'chat', context: getEditorContext('chat') });
         this._panel.webview.postMessage({ type: 'reply', text: res.reply, actions: res.actions });
         if (res.actions && res.actions.length > 0) {
           const apply = await vscode.window.showInformationMessage(
