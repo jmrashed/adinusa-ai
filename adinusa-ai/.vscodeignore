@@ -12,3 +12,6 @@ package-lock.json
 **/*.map
 **/*.ts
 !assets/icon.png
+!README.md
+!LICENSE
+!CHANGELOG.md
