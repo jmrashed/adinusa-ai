@@ -24,6 +24,8 @@ Adinusa AI is a full-stack VS Code extension that brings an autonomous AI softwa
 
 Unlike simple autocomplete tools, Adinusa AI can **plan**, **reason**, **write files**, and **execute terminal commands** — all from a natural language prompt inside VS Code.
 
+![Adinusa AI Demo](./docs/assets/images/demo.png)
+
 ---
 
 ## Features
