@@ -132,7 +132,7 @@ jobs:
         run: pnpm --filter adinusa-ai package
 
       - name: Check build artifacts
-        run: ls -la adinusa-ai/out/
+        run: ls -la adinusa-ai/dist/
 
   docker-build:
     name: Docker Build (Backend)
