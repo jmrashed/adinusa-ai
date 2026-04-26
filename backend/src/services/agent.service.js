@@ -1,6 +1,7 @@
 const { callLLM } = require('./llm.service');
 const { AGENT_SYSTEM_PROMPT } = require('../prompts/system.prompt');
 const { readFile } = require('../tools/file.tool');
+const { deleteFile } = require('../tools/delete.tool');
 const { listFiles, searchFiles } = require('../tools/search.tool');
 const logger = require('../utils/logger');
 
@@ -8,7 +9,7 @@ const MAX_ITERATIONS = Math.min(parseInt(process.env.MAX_AGENT_ITERATIONS ?? '5'
 
 const NO_ACTION_INTENTS = ['explain', 'answer'];
 const SERVER_SIDE_TOOLS = new Set(['read_file', 'list_files', 'search_files']);
-const APPROVAL_REQUIRED_TOOLS = new Set(['write_file', 'run_command']);
+const APPROVAL_REQUIRED_TOOLS = new Set(['write_file', 'run_command', 'delete_file']);
 
 function buildUserMessage(message, context, intent) {
   let content = intent ? `[Intent: ${intent}]\n${message}` : message;
@@ -71,6 +72,17 @@ function normalizeAction(action, index) {
     };
   }
 
+  if (action.tool === 'delete_file') {
+    return {
+      id: `action-${index + 1}`,
+      tool: action.tool,
+      path: action.path,
+      title: action.path ? `Delete ${action.path}` : 'Delete file',
+      risk: 'high',
+      preview: action.path ? `Permanently delete ${action.path}` : 'Delete a file',
+    };
+  }
+
   if (action.tool === 'run_command') {
     return {
       id: `action-${index + 1}`,
@@ -94,6 +106,9 @@ async function executeServerTool(action, workspaceRoot) {
       return listFiles(action.path || '.', workspaceRoot);
     case 'search_files':
       return searchFiles(action.query || action.pattern || action.term, workspaceRoot);
+    case 'delete_file':
+      if (!action.path) throw new Error('delete_file requires path');
+      return deleteFile(action.path, workspaceRoot);
     default:
       throw new Error(`Unknown tool: ${action.tool}`);
   }

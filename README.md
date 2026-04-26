@@ -385,6 +385,51 @@ docker build -t adinusa-ai-backend .
 docker run -p 3002:3002 --env-file .env adinusa-ai-backend
 ```
 
+### Production Deployment
+
+For production use, consider the following:
+
+1. **Use HTTPS** — Configure a reverse proxy (nginx, Traefik, Caddy) with TLS certificates.
+2. **Set strong rate limits** — Adjust `RATE_LIMIT` and consider per-user limits after implementing auth.
+3. **Enable structured JSON logging** — Set `LOG_FORMAT=json` and ship logs to a central system.
+4. **Use secret management** — Store API keys in Kubernetes Secrets, Docker secrets, or a vault.
+5. **Resource limits** — Apply CPU/memory constraints (see `k8s/backend-deployment.yaml`).
+6. **Monitor with Prometheus** — Export metrics endpoint (TODO).
+7. **Graceful shutdown** — Already supported; ensure `SIGTERM` is handled.
+8. **Run as non-root** — Dockerfile uses non-root user `nodejs`.
+
+### Kubernetes
+
+A sample Kubernetes manifest is provided in `k8s/backend-deployment.yaml`. It includes:
+
+- Deployment with 1 replica (scale as needed)
+- ClusterIP Service
+- Ingress (adjust host)
+- ConfigMap and Secret for environment
+- Health probes
+
+Apply with:
+
+```bash
+kubectl apply -f k8s/backend-deployment.yaml
+```
+
+Ensure you replace placeholder secret values with real API keys.
+
+### Process Managers
+
+For VM or bare-metal deployments, use PM2:
+
+```bash
+cd backend
+pnpm add -g pm2
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup
+```
+
+The `ecosystem.config.js` runs the app in cluster mode across all CPU cores with log rotation.
+
 ---
 
 ## Security
@@ -396,6 +441,89 @@ docker run -p 3002:3002 --env-file .env adinusa-ai-backend
 - **Input validation** — message type, length (max 8000 chars), and presence are validated
 - **CORS** — restricted to configured origins only
 - **Secrets** — `.env` is gitignored; only `.env.example` is committed
+
+---
+
+## API Documentation
+
+The backend API is documented using OpenAPI 3.0. You can view the full specification:
+
+- **[OpenAPI YAML](./backend/openapi.yaml)** — Machine-readable API contract
+- Interactive documentation (coming soon with Swagger UI)
+
+Endpoints:
+- `GET /health` — Health check
+- `POST /ai/chat` — Send a message to the AI agent
+
+---
+
+## FAQ & Troubleshooting
+
+### Common Issues
+
+**Q: The extension shows "Backend connection failed"**
+
+A: Ensure the backend server is running on `http://localhost:3002` (or your configured `adinusaAi.backendUrl`). Check:
+```bash
+curl http://localhost:3002/health
+```
+If it fails, start the backend: `cd backend && npm run dev`
+
+**Q: I get "workspaceRoot is required" error**
+
+A: Open a workspace folder in VS Code (File → Open Folder). The agent needs a workspace to operate in.
+
+**Q: My API key isn't working**
+
+A: 
+1. Verify the key is correctly set in VS Code settings (not just in `.env`)
+2. For GLM: keys are from https://open.bigmodel.cn
+3. For OpenAI: keys are from https://platform.openai.com/api-keys
+4. Ensure no extra spaces or quotes in the key
+
+**Q: The agent says "command not found" or fails to execute commands**
+
+A:
+- Commands run in the workspace's shell environment
+- On Windows, use `cmd` or PowerShell syntax; on macOS/Linux use bash
+- Some commands (like `rm -rf /`) are blocked for security
+
+**Q: Rate limit errors (429)**
+
+A: Default is 30 requests per minute. Increase `RATE_LIMIT` in `backend/.env` or wait a minute.
+
+**Q: Agent loops indefinitely or times out**
+
+A: The agent has a maximum iteration limit (default 5). Adjust `MAX_AGENT_ITERATIONS` in `backend/.env` (max 10).
+
+**Q: File writes fail with permission denied**
+
+A: The agent writes files within the workspace only. Ensure the workspace directory is writable.
+
+**Q: No response from the AI (timeout)**
+
+A:
+- Check your API key is valid and has quota
+- Verify network connectivity to the LLM provider
+- The backend has a default timeout; check logs for details
+
+**Q: How do I view backend logs?**
+
+A: Backend logs appear in the terminal where you ran `npm run dev`. For production, configure proper logging (e.g., Winston + file transport).
+
+**Q: The extension doesn't activate / commands don't appear**
+
+A: Reload VS Code (`Ctrl+R` or `Developer: Reload Window`). Ensure the extension is installed and enabled.
+
+**Q: Type errors on build**
+
+A: Run `pnpm install` in both `adinusa-ai/` and `backend/` directories, or use `bash scripts/install.sh` from the repo root.
+
+---
+
+## Security
+
+See [SECURITY.md](./SECURITY.md) for vulnerability reporting and best practices.
 
 ---
 

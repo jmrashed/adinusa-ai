@@ -1,11 +1,19 @@
 {
   "name": "adinusa-ai-backend",
-   "version": "0.3.0",
+  "version": "0.3.0",
   "description": "Adinusa AI Agent Backend — Express server powering the GLM-5.1 agent",
   "main": "src/app.js",
+  "private": true,
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "build": "echo 'No build step required for plain JavaScript'",
+    "clean": "rm -rf coverage"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -14,14 +22,18 @@
     "@anthropic-ai/sdk": "^0.89.0",
     "@google/generative-ai": "^0.24.1",
     "axios": "^1.7.2",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-rate-limit": "^7.3.1",
     "helmet": "^7.1.0",
-    "openai": "^6.34.0"
+    "openai": "^6.34.0",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.4",
+    "supertest": "^7.2.2"
   }
 }

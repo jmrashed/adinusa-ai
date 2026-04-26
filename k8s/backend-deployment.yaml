@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: adinusa-ai
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: adinusa-ai-config
+  namespace: adinusa-ai
+data:
+  PORT: "3002"
+  NODE_ENV: "production"
+  DEFAULT_PROVIDER: "glm"
+  GLM_MODEL: "glm-4-flash"
+  RATE_LIMIT: "30"
+  ALLOWED_ORIGINS: "vscode-webview://*"
+  # Note: API keys should be provided via Secrets, not ConfigMap
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: adinusa-ai-secrets
+  namespace: adinusa-ai
+type: Opaque
+stringData:
+  # Replace placeholder values with actual secrets using `kubectl create secret generic` or sealed-secrets
+  ZHIPU_API_KEY: "CHANGE_ME"
+  OPENAI_API_KEY: "CHANGE_ME"
+  ANTHROPIC_API_KEY: "CHANGE_ME"
+  GEMINI_API_KEY: "CHANGE_ME"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adinusa-ai-backend
+  namespace: adinusa-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adinusa-ai-backend
+  template:
+    metadata:
+      labels:
+        app: adinusa-ai-backend
+    spec:
+      containers:
+        - name: backend
+          image: adinusa-ai-backend:0.3.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3002
+              name: http
+          envFrom:
+            - configMapRef:
+                name: adinusa-ai-config
+            - secretRef:
+                name: adinusa-ai-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 2
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adinusa-ai-backend
+  namespace: adinusa-ai
+spec:
+  selector:
+    app: adinusa-ai-backend
+  ports:
+    - protocol: TCP
+      port: 3002
+      targetPort: 3002
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: adinusa-ai-backend
+  namespace: adinusa-ai
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: adinusa-ai.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: adinusa-ai-backend
+                port:
+                  number: 3002

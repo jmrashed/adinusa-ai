@@ -1,0 +1,46 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    assignees:
+      - "jmrashed"
+    labels:
+      - "dependencies"
+      - "pnpm"
+    reviewers:
+      - "jmrashed"
+
+  - package-ecosystem: "npm"
+    directory: "/adinusa-ai"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:15"
+    open-pull-requests-limit: 5
+    assignees:
+      - "jmrashed"
+    labels:
+      - "dependencies"
+      - "extension"
+    reviewers:
+      - "jmrashed"
+
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+    open-pull-requests-limit: 5
+    assignees:
+      - "jmrashed"
+    labels:
+      - "dependencies"
+      - "backend"
+    reviewers:
+      - "jmrashed"

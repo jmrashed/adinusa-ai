@@ -20,23 +20,17 @@ function safePath(workspaceRoot, filePath = '.') {
   return { root, target, relative: relative || '.' };
 }
 
-async function writeFile(filePath, content, workspaceRoot) {
-  if (typeof content !== 'string') {
-    throw new Error('write_file requires string content');
-  }
-  if (content.length > 1024 * 1024) { // 1 MB limit
-    throw new Error('File content too large (max 1MB)');
-  }
-
+async function deleteFile(filePath, workspaceRoot) {
   const { target, relative } = safePath(workspaceRoot, filePath);
-  await fs.mkdir(path.dirname(target), { recursive: true });
-  await fs.writeFile(target, content, 'utf8');
-  return `File written: ${relative}`;
+
+  try {
+    await fs.access(target);
+  } catch {
+    throw new Error(`File does not exist: ${relative}`);
+  }
+
+  await fs.unlink(target);
+  return `File deleted: ${relative}`;
 }
 
-async function readFile(filePath, workspaceRoot) {
-  const { target } = safePath(workspaceRoot, filePath);
-  return fs.readFile(target, 'utf8');
-}
-
-module.exports = { getWorkspaceRoot, safePath, writeFile, readFile };
+module.exports = { deleteFile };

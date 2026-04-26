@@ -1,0 +1,42 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: watch (extension)",
+      "type": "npm",
+      "script": "watch",
+      "path": "adinusa-ai",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: dev (backend)",
+      "type": "npm",
+      "script": "dev",
+      "path": "backend",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: package (extension)",
+      "type": "npm",
+      "script": "package",
+      "path": "adinusa-ai",
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: test (backend)",
+      "type": "npm",
+      "script": "test",
+      "path": "backend",
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: test (extension)",
+      "type": "npm",
+      "script": "test",
+      "path": "adinusa-ai",
+      "problemMatcher": []
+    }
+  ]
+}

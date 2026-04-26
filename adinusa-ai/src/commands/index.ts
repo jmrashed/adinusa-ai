@@ -23,6 +23,11 @@ function resolveCodeReply(reply: Awaited<ReturnType<typeof sendChat>>): string {
 export function registerAskCommand(_ctx: vscode.ExtensionContext) {
   return vscode.commands.registerCommand('adinusa-ai.ask', () =>
     withErrorHandling(async () => {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (!workspaceRoot) {
+        vscode.window.showErrorMessage('Adinusa AI: Please open a workspace folder first.');
+        return;
+      }
       const message = await vscode.window.showInputBox({ prompt: 'Ask Adinusa AI...' });
       if (!message) return;
       const res = await sendChat({ message, intent: 'chat', context: getEditorContext('chat') });
@@ -34,6 +39,11 @@ export function registerAskCommand(_ctx: vscode.ExtensionContext) {
 export function registerGenerateCommand(_ctx: vscode.ExtensionContext) {
   return vscode.commands.registerCommand('adinusa-ai.generate', () =>
     withErrorHandling(async () => {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (!workspaceRoot) {
+        vscode.window.showErrorMessage('Adinusa AI: Please open a workspace folder first.');
+        return;
+      }
       const message = await vscode.window.showInputBox({ prompt: 'Describe code to generate...' });
       if (!message) return;
       const res = await sendChat({ message: `Generate code: ${message}`, intent: 'generate', context: getEditorContext('generate') });
@@ -45,6 +55,11 @@ export function registerGenerateCommand(_ctx: vscode.ExtensionContext) {
 export function registerExplainCommand(_ctx: vscode.ExtensionContext) {
   return vscode.commands.registerCommand('adinusa-ai.explain', () =>
     withErrorHandling(async () => {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (!workspaceRoot) {
+        vscode.window.showErrorMessage('Adinusa AI: Please open a workspace folder first.');
+        return;
+      }
       const ctx = getEditorContext('explain');
       if (!ctx.selection) { vscode.window.showWarningMessage('Select code to explain first.'); return; }
       const res = await sendChat({ message: 'Explain this code', intent: 'explain', context: ctx });
@@ -56,6 +71,11 @@ export function registerExplainCommand(_ctx: vscode.ExtensionContext) {
 export function registerFixCommand(_ctx: vscode.ExtensionContext) {
   return vscode.commands.registerCommand('adinusa-ai.fix', () =>
     withErrorHandling(async () => {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (!workspaceRoot) {
+        vscode.window.showErrorMessage('Adinusa AI: Please open a workspace folder first.');
+        return;
+      }
       const ctx = getEditorContext('fix');
       if (!ctx.selection) { vscode.window.showWarningMessage('Select code to fix first.'); return; }
       const res = await sendChat({ message: 'Fix this code', intent: 'fix', context: ctx });

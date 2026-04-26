@@ -2,21 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.3.0] - 2026-04-27
+## [0.4.0] - 2026-04-27
 
 ### Added
-- Workspace search tools: `list_files` and `search_files` for agent file discovery
-- Code extraction engine — separates code blocks from prose, applies directly to editor
-- Separate `code` and `language` fields in API response for direct editor insertion
-- Diagnostic integration — VS Code errors/warnings included in context for `fix` intent
-- Workspace root validation — requires open folder for all file and command operations
-- AgentAction metadata: `id`, `risk` (low/medium/high), `preview` for richer UI
-- Server-side vs approval tool separation — read/list/search run automatically; write/run require user approval
-- Expanded command blocklist: `sudo`, `chmod 777`, `chown`, fork bombs (`:(){`), and multiline command protection
-- Per-action status feedback in UI — individual success/failure details after Apply
-- Action cards now show tool type, preview text, and risk level inline
-- `search.tool.js` — ripgrep-based workspace file listing and full-text search
-- `logger.warn()` method for structured warning logging
+- Project configuration files: .editorconfig, .prettierrc, .nvmrc, .node-version
+- CI/CD pipeline with GitHub Actions workflow
+- Dependabot configuration for automated dependency updates
+- Husky pre-commit hooks for code quality enforcement
+- Jest test configurations for both frontend and backend
+- Environment configuration system with structured env validation
+- Request ID middleware for distributed tracing
+- Request logging middleware with structured logging
+- Security headers middleware for enhanced HTTP security
+- Request timeout middleware for improved reliability
+- Error handling middleware with centralized error management
+- ESLint configurations for consistent code style
+- EditorConfig for consistent editor settings across IDEs
+- VS Code launch and task configurations for development workflow
+- CODE_OF_CONDUCT.md, SECURITY.md, and contributing guidelines
+- Backend health check endpoint and monitoring
+- Docker Compose and Kubernetes deployment configurations
+- Environment example files for backend configuration
+- Open API specification for backend API documentation
+- Ecosystem configuration for process management
+- Cross-platform development environment setup
 
 ### Fixed
 - Agent no longer executes `write_file` or `run_command` automatically — always requires user approval
@@ -26,6 +35,11 @@ All notable changes to this project will be documented in this file.
 - Action approval flow now fully inline with no VS Code notification popup interruption
 - System prompt clarity on when to use `write_file` vs return code in `final_answer`
 - Backend returns `meta.iterations` for debugging agent loop duration
+- Enhanced project structure with clear separation of frontend, backend, and configuration
+- Improved development workflow with automated linting and pre-commit checks
+- Better error handling and logging throughout the application
+- Enhanced security posture with security headers and input validation
+- More maintainable codebase with consistent formatting and linting rules
 
 ## [0.2.0] - 2026-04-15
 

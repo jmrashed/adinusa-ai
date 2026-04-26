@@ -1,0 +1,287 @@
+openapi: 3.0.3
+info:
+  title: Adinusa AI Backend API
+  description: |
+    Backend API for the Adinusa AI VS Code extension. Provides AI-powered code assistance 
+    through a chat interface and agent-based action execution.
+  version: 0.3.0
+  contact:
+    name: Md Rasheduzzaman
+    email: jmrashed@gmail.com
+    url: https://github.com/jmrashed/adinusa-ai
+
+servers:
+  - url: http://localhost:3002
+    description: Local development server
+  - url: https://your-domain.com
+    description: Production server (self-hosted)
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the API and current version.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  value:
+                    status: ok
+                    version: 0.3.0
+
+  /ai/chat:
+    post:
+      summary: Send a chat message to the AI agent
+      description: |
+        Sends a message to the AI agent. The agent will process the request, 
+        plan actions, execute tools (file read/write, terminal commands, search), 
+        and return a response with results.
+        
+        The agent operates on the provided workspace root and can read/write files, 
+        run commands, and perform various code-related tasks.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              simpleChat:
+                summary: Simple question
+                value:
+                  message: "Explain how the authentication middleware works"
+                  context:
+                    workspaceRoot: "/Users/user/projects/my-app"
+              withConfig:
+                summary: With model configuration
+                value:
+                  message: "Refactor this function to use async/await"
+                  context:
+                    workspaceRoot: "/Users/user/projects/my-app"
+                  modelConfig:
+                    provider: "glm"
+                    model: "glm-4-flash"
+      responses:
+        '200':
+          description: Agent response with actions and results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                agentResponse:
+                  value:
+                    message: "I'll help you understand the authentication middleware. Here's what it does..."
+                    actions:
+                      - type: "read_file"
+                        path: "/src/middleware/auth.js"
+                        status: "completed"
+                      - type: "run_command"
+                        command: "npm test"
+                        status: "completed"
+                    tokensUsed: 2450
+                    cost: 0.0012
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - version
+      properties:
+        status:
+          type: string
+          enum: [ok, error]
+          description: Health status
+        version:
+          type: string
+          description: API version
+
+    ChatRequest:
+      type: object
+      required:
+        - message
+        - context
+      properties:
+        message:
+          type: string
+          description: The user's message or question
+          maxLength: 8000
+          example: "Explain the code in app.js"
+        context:
+          $ref: '#/components/schemas/Context'
+        modelConfig:
+          $ref: '#/components/schemas/ModelConfig'
+          description: Optional AI model configuration
+
+    Context:
+      type: object
+      required:
+        - workspaceRoot
+      properties:
+        workspaceRoot:
+          type: string
+          description: Absolute path to the workspace root directory
+          example: "/Users/user/projects/my-app"
+        selectedFile:
+          type: string
+          description: Currently selected file path (optional)
+          example: "/src/index.js"
+        selectedText:
+          type: string
+          description: Currently selected text (optional)
+
+    ModelConfig:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum: [glm, openai, claude, gemini, ollama]
+          description: AI provider to use
+          default: glm
+        model:
+          type: string
+          description: Model name for the selected provider
+          example: "glm-4-flash"
+        temperature:
+          type: number
+          description: Sampling temperature (0-1)
+          minimum: 0
+          maximum: 1
+          default: 0.7
+        maxTokens:
+          type: integer
+          description: Maximum tokens in response
+          default: 4096
+
+    ChatResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The AI's text response
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+        tokensUsed:
+          type: integer
+          description: Total tokens consumed in this interaction
+        cost:
+          type: number
+          format: float
+          description: Estimated cost in USD
+        error:
+          type: string
+          description: Error message if the request failed
+
+    Action:
+      type: object
+      required:
+        - type
+        - status
+      properties:
+        type:
+          type: string
+          enum: [read_file, write_file, run_command, search_files, delete_file, mkdir, etc.]
+          description: Type of action performed
+        path:
+          type: string
+          description: File path involved in the action
+        command:
+          type: string
+          description: Command executed (for run_command)
+        status:
+          type: string
+          enum: [pending, in_progress, completed, failed]
+          description: Action execution status
+        result:
+          type: string
+          description: Result or output of the action
+        error:
+          type: string
+          description: Error message if action failed
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missingMessage:
+              value:
+                error: "message is required and must be a non-empty string"
+            invalidProvider:
+              value:
+                error: "Invalid provider. Must be one of: glm, openai, claude, gemini, ollama"
+
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rateLimited:
+              value:
+                error: "Too many requests, please slow down."
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication (if enabled)
+
+  # Headers
+  headers:
+    X-Request-ID:
+      description: Unique request identifier for tracing
+      schema:
+        type: string
+        format: uuid
+    X-RateLimit-Limit:
+      description: Request limit per window
+      schema:
+        type: integer
+    X-RateLimit-Remaining:
+      description: Remaining requests in current window
+      schema:
+        type: integer
+    X-RateLimit-Reset:
+      description: Time when rate limit resets (UTC epoch seconds)
+      schema:
+        type: integer
+
+security:
+  - ApiKey: []
