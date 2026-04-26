@@ -15,6 +15,9 @@ async function chat(req, res) {
   if (modelConfig?.provider && !VALID_PROVIDERS.includes(modelConfig.provider)) {
     return res.status(400).json({ error: `Invalid provider. Must be one of: ${VALID_PROVIDERS.join(', ')}` });
   }
+  if (!context?.workspaceRoot || typeof context.workspaceRoot !== 'string') {
+    return res.status(400).json({ error: 'workspaceRoot is required. Open a workspace folder in VS Code and try again.' });
+  }
 
   try {
     const result = await runAgent(message.trim(), context ?? {}, modelConfig ?? {});

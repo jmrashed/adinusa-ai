@@ -29,19 +29,20 @@ export class ChatPanel {
     this._panel.webview.html = this._getHtml();
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
     this._panel.webview.onDidReceiveMessage(async (msg) => {
+      if (msg.type === 'actionConfirm') {
+        try {
+          const results = await applyActions(msg.actions);
+          this._panel.webview.postMessage({ type: 'actionDone', msgId: msg.msgId, results });
+        } catch (e: any) {
+          this._panel.webview.postMessage({ type: 'actionError', msgId: msg.msgId, text: e.message });
+        }
+        return;
+      }
+
       if (msg.type !== 'chat') return;
       try {
         const res = await sendChat({ message: msg.text, intent: 'chat', context: getEditorContext('chat') });
         this._panel.webview.postMessage({ type: 'reply', text: res.reply, actions: res.actions });
-        if (res.actions && res.actions.length > 0) {
-          const apply = await vscode.window.showInformationMessage(
-            `Adinusa AI wants to execute ${res.actions.length} action(s). Apply?`,
-            'Apply', 'Skip'
-          );
-          if (apply === 'Apply') {
-            await applyActions(res.actions, { extensionUri: this._extensionUri } as any);
-          }
-        }
       } catch (e: any) {
         logger.error(e.message);
         this._panel.webview.postMessage({ type: 'error', text: e.message });
@@ -81,7 +82,14 @@ export class ChatPanel {
   .ai em{font-style:italic}
   .ai blockquote{border-left:3px solid var(--vscode-textBlockQuote-border,#555);padding-left:10px;opacity:0.8;margin:4px 0}
   .ai a{color:var(--vscode-textLink-foreground,#4daafc)}
-  .actions-bar{font-size:11px;opacity:0.6;margin-top:6px;padding-top:6px;border-top:1px solid var(--vscode-editorWidget-border,#444)}
+  .action-card{margin-top:8px;padding:8px;background:var(--vscode-editorWidget-background);border:1px solid var(--vscode-inputValidation-warningBorder,#cca700);border-radius:4px;font-size:11px}
+  .action-list{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+  .action-item{padding:6px;border-radius:4px;background:var(--vscode-sideBar-background);border:1px solid var(--vscode-editorWidget-border,#444)}
+  .action-meta{display:flex;justify-content:space-between;gap:8px;font-size:10px;opacity:.7;margin-top:4px}
+  .act-btns{display:flex;gap:6px}
+  .act-btn{padding:3px 10px;font-size:11px;border:none;border-radius:3px;cursor:pointer}
+  .act-apply{background:var(--vscode-button-background);color:var(--vscode-button-foreground)}
+  .act-skip{background:transparent;color:var(--vscode-foreground);border:1px solid var(--vscode-editorWidget-border,#555)}
   #input-row{display:flex;gap:8px;padding:10px;border-top:1px solid var(--vscode-editorWidget-border,#444)}
   #input{flex:1;padding:8px;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border,#555);border-radius:4px;font-size:13px;resize:none;font-family:inherit;line-height:1.4}
   #input:focus{outline:1px solid var(--vscode-focusBorder,#007fd4)}
@@ -102,6 +110,7 @@ export class ChatPanel {
   const input = document.getElementById('input');
   const send = document.getElementById('send');
   let thinking = null;
+  let msgCounter = 0;
 
   // Minimal markdown renderer
   function renderMarkdown(text) {
@@ -132,6 +141,23 @@ export class ChatPanel {
     return '<p>' + html + '</p>';
   }
 
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;');
+  }
+
+  function renderActions(actions) {
+    return actions.map(action =>
+      '<div class="action-item">' +
+        '<strong>' + escapeHtml(action.title || action.tool) + '</strong>' +
+        (action.preview ? '<div>' + escapeHtml(action.preview) + '</div>' : '') +
+        '<div class="action-meta"><span>' + escapeHtml(action.tool) + '</span><span>Risk: ' + escapeHtml(action.risk || 'low') + '</span></div>' +
+      '</div>'
+    ).join('');
+  }
+
   function addMsg(text, cls, isMarkdown = false) {
     const d = document.createElement('div');
     d.className = 'msg ' + cls;
@@ -160,21 +186,62 @@ export class ChatPanel {
   });
 
   window.addEventListener('message', e => {
+    const msg = e.data;
+    if (msg.type === 'actionDone') {
+      const card = document.getElementById('ac-' + msg.msgId);
+      if (card) {
+        const details = Array.isArray(msg.results)
+          ? msg.results.map(r => '<div>' + escapeHtml(r.detail) + '</div>').join('')
+          : '';
+        card.innerHTML = '<span style="opacity:.6">Applied actions.</span>' + details;
+      }
+      return;
+    }
+
+    if (msg.type === 'actionError') {
+      const card = document.getElementById('ac-' + msg.msgId);
+      if (card) card.innerHTML = '<span style="color:var(--vscode-errorForeground,#f48771)">⚠ ' + escapeHtml(msg.text) + '</span>';
+      return;
+    }
+
     if (thinking) { thinking.remove(); thinking = null; }
     send.disabled = false;
-    const msg = e.data;
+
     if (msg.type === 'reply') {
+      const id = ++msgCounter;
       const d = addMsg(msg.text, 'ai', true);
       if (msg.actions && msg.actions.length > 0) {
-        const bar = document.createElement('div');
-        bar.className = 'actions-bar';
-        bar.textContent = '⚡ ' + msg.actions.length + ' action(s) pending — check VS Code notification to apply.';
-        d.appendChild(bar);
+        const card = document.createElement('div');
+        card.className = 'action-card';
+        card.id = 'ac-' + id;
+        card.innerHTML =
+          '<p>⚡ AI prepared <strong>' + msg.actions.length + '</strong> action(s) that need your approval.</p>' +
+          '<div class="action-list">' + renderActions(msg.actions) + '</div>' +
+          '<div class="act-btns">' +
+          '<button class="act-btn act-apply" onclick="applyActions(' + id + ')">Apply</button>' +
+          '<button class="act-btn act-skip" onclick="skipActions(' + id + ')">Skip</button>' +
+          '</div>';
+        d.appendChild(card);
+        window['_actions_' + id] = msg.actions;
       }
     } else if (msg.type === 'error') {
       addMsg('Error: ' + msg.text, 'error');
     }
   });
+
+  function applyActions(id) {
+    const card = document.getElementById('ac-' + id);
+    if (!card) return;
+    card.querySelectorAll('.act-btn').forEach(b => b.disabled = true);
+    vscode.postMessage({ type: 'actionConfirm', msgId: id, actions: window['_actions_' + id] });
+  }
+
+  function skipActions(id) {
+    const card = document.getElementById('ac-' + id);
+    if (!card) return;
+    card.innerHTML = '<span style="opacity:.5">Actions skipped.</span>';
+    delete window['_actions_' + id];
+  }
 </script>
 </body>
 </html>`;

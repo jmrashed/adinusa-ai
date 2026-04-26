@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { sendChat } from '../services/api.service';
 import { getEditorContext } from '../services/context.service';
-import { insertOrReplaceCode } from '../services/editor.service';
+import { extractCodeFromText, insertOrReplaceCode } from '../services/editor.service';
 import { logger } from '../utils/logger';
 
 async function withErrorHandling(fn: () => Promise<void>) {
@@ -11,6 +11,13 @@ async function withErrorHandling(fn: () => Promise<void>) {
     logger.error(e.message);
     vscode.window.showErrorMessage(`Adinusa AI: ${e.message}`);
   }
+}
+
+function resolveCodeReply(reply: Awaited<ReturnType<typeof sendChat>>): string {
+  if (reply.code && reply.code.trim()) return reply.code;
+  const extracted = extractCodeFromText(reply.reply);
+  if (extracted?.code) return extracted.code;
+  return reply.reply;
 }
 
 export function registerAskCommand(_ctx: vscode.ExtensionContext) {
@@ -30,7 +37,7 @@ export function registerGenerateCommand(_ctx: vscode.ExtensionContext) {
       const message = await vscode.window.showInputBox({ prompt: 'Describe code to generate...' });
       if (!message) return;
       const res = await sendChat({ message: `Generate code: ${message}`, intent: 'generate', context: getEditorContext('generate') });
-      await insertOrReplaceCode(res.reply);
+      await insertOrReplaceCode(resolveCodeReply(res));
     })
   );
 }
@@ -52,7 +59,7 @@ export function registerFixCommand(_ctx: vscode.ExtensionContext) {
       const ctx = getEditorContext('fix');
       if (!ctx.selection) { vscode.window.showWarningMessage('Select code to fix first.'); return; }
       const res = await sendChat({ message: 'Fix this code', intent: 'fix', context: ctx });
-      await insertOrReplaceCode(res.reply);
+      await insertOrReplaceCode(resolveCodeReply(res));
     })
   );
 }

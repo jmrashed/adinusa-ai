@@ -1,15 +1,40 @@
 import { getBackendUrl } from '../config/settings';
 import { getModelConfig, validateModelConfig } from './model.service';
 
+export interface AgentAction {
+  id: string;
+  tool: string;
+  path?: string;
+  content?: string;
+  command?: string;
+  title?: string;
+  risk?: 'low' | 'medium' | 'high';
+  preview?: string;
+}
+
 export interface ChatRequest {
   message: string;
   intent?: 'explain' | 'generate' | 'fix' | 'refactor' | 'run' | 'chat';
-  context?: { file?: string; selection?: string; fileName?: string; intent?: string };
+  context?: {
+    file?: string;
+    selection?: string;
+    fileName?: string;
+    intent?: string;
+    workspaceRoot?: string;
+    diagnostics?: string[];
+  };
 }
 
 export interface ChatResponse {
   reply: string;
-  actions?: Array<{ tool: string; path?: string; content?: string; command?: string }>;
+  code?: string;
+  language?: string;
+  actions?: AgentAction[];
+  warnings?: string[];
+  meta?: {
+    intent?: string;
+    iterations?: number;
+  };
 }
 
 export async function sendChat(req: ChatRequest): Promise<ChatResponse> {
@@ -17,6 +42,9 @@ export async function sendChat(req: ChatRequest): Promise<ChatResponse> {
 
   const validationError = validateModelConfig(modelConfig);
   if (validationError) throw new Error(validationError);
+  if (!req.context?.workspaceRoot) {
+    throw new Error('Open a workspace folder before using Adinusa AI.');
+  }
 
   const res = await fetch(`${getBackendUrl()}/ai/chat`, {
     method: 'POST',

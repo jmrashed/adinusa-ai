@@ -33,8 +33,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
       if (event.type === 'actionConfirm') {
         try {
-          await applyActions(event.actions, { extensionUri: this._extensionUri } as any);
-          webviewView.webview.postMessage({ type: 'actionDone', msgId: event.msgId });
+          const results = await applyActions(event.actions);
+          webviewView.webview.postMessage({ type: 'actionDone', msgId: event.msgId, results });
         } catch (e: any) {
           webviewView.webview.postMessage({ type: 'actionError', msgId: event.msgId, text: e.message });
         }
@@ -105,6 +105,9 @@ body{font-family:var(--vscode-font-family);background:var(--vscode-sideBar-backg
 .ai a{color:var(--vscode-textLink-foreground,#4daafc)}
 .action-card{margin-top:8px;padding:8px;background:var(--vscode-editorWidget-background);border:1px solid var(--vscode-inputValidation-warningBorder,#cca700);border-radius:4px;font-size:11px}
 .action-card p{margin-bottom:6px;opacity:.85}
+.action-list{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.action-item{padding:6px;border-radius:4px;background:var(--vscode-sideBar-background);border:1px solid var(--vscode-editorWidget-border,#444)}
+.action-meta{display:flex;justify-content:space-between;gap:8px;font-size:10px;opacity:.7;margin-top:4px}
 .action-card .act-btns{display:flex;gap:6px}
 .act-btn{padding:3px 10px;font-size:11px;border:none;border-radius:3px;cursor:pointer}
 .act-apply{background:var(--vscode-button-background);color:var(--vscode-button-foreground)}
@@ -218,6 +221,26 @@ function copyCode(btn) {
   });
 }
 
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function renderActions(actions) {
+  return actions.map(action => {
+    const title = escapeHtml(action.title || action.tool);
+    const preview = escapeHtml(action.preview || action.command || action.path || '');
+    const risk = escapeHtml(action.risk || 'low');
+    return '<div class="action-item">' +
+      '<strong>' + title + '</strong>' +
+      (preview ? '<div>' + preview + '</div>' : '') +
+      '<div class="action-meta"><span>' + escapeHtml(action.tool) + '</span><span>Risk: ' + risk + '</span></div>' +
+      '</div>';
+  }).join('');
+}
+
 function addMsg(html, cls, isHtml = false) {
   const welcome = messagesEl.querySelector('.welcome');
   if (welcome) welcome.remove();
@@ -286,7 +309,12 @@ window.addEventListener('message', e => {
 
   if (ev.type === 'actionDone') {
     const card = document.getElementById('ac-' + ev.msgId);
-    if (card) card.innerHTML = '<span style="opacity:.6">✅ Actions applied.</span>';
+    if (card) {
+      const details = Array.isArray(ev.results)
+        ? ev.results.map(r => '<div>' + escapeHtml(r.detail) + '</div>').join('')
+        : '';
+      card.innerHTML = '<span style="opacity:.6">Applied actions.</span>' + details;
+    }
     return;
   }
 
@@ -306,7 +334,8 @@ window.addEventListener('message', e => {
       card.className = 'action-card';
       card.id = 'ac-' + id;
       card.innerHTML =
-        '<p>⚡ AI wants to run <strong>' + ev.actions.length + '</strong> action(s).</p>' +
+        '<p>⚡ AI prepared <strong>' + ev.actions.length + '</strong> action(s) that need your approval.</p>' +
+        '<div class="action-list">' + renderActions(ev.actions) + '</div>' +
         '<div class="act-btns">' +
         '<button class="act-btn act-apply" onclick="applyActions(' + id + ')">Apply</button>' +
         '<button class="act-btn act-skip" onclick="skipActions(' + id + ')">Skip</button>' +
