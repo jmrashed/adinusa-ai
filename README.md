@@ -6,7 +6,7 @@
 
 **An autonomous AI coding agent inside Visual Studio Code, powered by multiple LLM providers.**
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/jmrashed/adinusa-ai/releases)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/jmrashed/adinusa-ai/releases)
 [![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.90.0-007ACC?logo=visualstudiocode)](https://code.visualstudio.com/)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-339933?logo=nodedotjs)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)

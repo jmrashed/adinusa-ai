@@ -1,6 +1,6 @@
 {
   "name": "adinusa-ai-backend",
-  "version": "0.1.0",
+   "version": "0.3.0",
   "description": "Adinusa AI Agent Backend — Express server powering the GLM-5.1 agent",
   "main": "src/app.js",
   "scripts": {

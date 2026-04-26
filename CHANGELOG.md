@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-04-27
+
+### Added
+- Workspace search tools: `list_files` and `search_files` for agent file discovery
+- Code extraction engine — separates code blocks from prose, applies directly to editor
+- Separate `code` and `language` fields in API response for direct editor insertion
+- Diagnostic integration — VS Code errors/warnings included in context for `fix` intent
+- Workspace root validation — requires open folder for all file and command operations
+- AgentAction metadata: `id`, `risk` (low/medium/high), `preview` for richer UI
+- Server-side vs approval tool separation — read/list/search run automatically; write/run require user approval
+- Expanded command blocklist: `sudo`, `chmod 777`, `chown`, fork bombs (`:(){`), and multiline command protection
+- Per-action status feedback in UI — individual success/failure details after Apply
+- Action cards now show tool type, preview text, and risk level inline
+- `search.tool.js` — ripgrep-based workspace file listing and full-text search
+- `logger.warn()` method for structured warning logging
+
+### Fixed
+- Agent no longer executes `write_file` or `run_command` automatically — always requires user approval
+- Removed shadowed variable bug in panel.ts message handler (already fixed in 0.2.0)
+
+### Improved
+- Action approval flow now fully inline with no VS Code notification popup interruption
+- System prompt clarity on when to use `write_file` vs return code in `final_answer`
+- Backend returns `meta.iterations` for debugging agent loop duration
+
 ## [0.2.0] - 2026-04-15
 
 ### Added

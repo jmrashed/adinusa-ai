@@ -2,7 +2,7 @@
   "name": "adinusa-ai",
   "displayName": "Adinusa AI",
   "description": "An autonomous AI coding agent inside VS Code powered by GLM-4. Chat, generate, explain, fix code and execute agent actions.",
-  "version": "0.1.0",
+   "version": "0.3.0",
   "publisher": "jmrashed",
   "author": {
     "name": "Md Rasheduzzaman",
