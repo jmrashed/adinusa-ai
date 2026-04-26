@@ -92,7 +92,7 @@
         <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
           <div class="text-brand text-2xl mb-3">⚡</div>
           <h3 class="font-semibold text-lg mb-2">Agent Actions</h3>
-          <p class="text-gray-400 text-sm">AI creates files and runs commands. Inline Apply / Skip card — no popup interruption.</p>
+          <p class="text-gray-400 text-sm">AI plans and executes multi-step workflows. Inline Apply/Skip cards with risk indicators and per-action status feedback.</p>
         </div>
         <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
           <div class="text-brand text-2xl mb-3">🎯</div>
@@ -107,12 +107,22 @@
         <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
           <div class="text-brand text-2xl mb-3">📄</div>
           <h3 class="font-semibold text-lg mb-2">Editor Context</h3>
-          <p class="text-gray-400 text-sm">Sends active file content and selection to the AI automatically on every request.</p>
+          <p class="text-gray-400 text-sm">Sends active file content, selection, and diagnostics to the AI automatically on every request.</p>
+        </div>
+        <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+          <div class="text-brand text-2xl mb-3">🔍</div>
+          <h3 class="font-semibold text-lg mb-2">Workspace Search</h3>
+          <p class="text-gray-400 text-sm">Agent can list and search files across the workspace to gather context before making changes.</p>
+        </div>
+        <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+          <div class="text-brand text-2xl mb-3">✅</div>
+          <h3 class="font-semibold text-lg mb-2">Code Extraction</h3>
+          <p class="text-gray-400 text-sm">Code blocks are automatically extracted from AI responses and can be applied directly to the editor with one click.</p>
         </div>
         <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
           <div class="text-brand text-2xl mb-3">🔒</div>
           <h3 class="font-semibold text-lg mb-2">Secure by Default</h3>
-          <p class="text-gray-400 text-sm">Path traversal protection, command blocklist, rate limiting, and helmet headers.</p>
+          <p class="text-gray-400 text-sm">Path traversal protection, command blocklist, rate limiting, workspace validation, and helmet security headers.</p>
         </div>
       </div>
     </div>
@@ -126,17 +136,17 @@
         <div>
           <div class="w-12 h-12 rounded-full bg-brand/20 text-brand font-bold text-xl flex items-center justify-center mx-auto mb-4">1</div>
           <h3 class="font-semibold mb-2">Type a prompt</h3>
-          <p class="text-gray-400 text-sm">Describe what you want in plain English inside the VS Code chat panel.</p>
+          <p class="text-gray-400 text-sm">Describe what you want in plain English inside the VS Code chat panel. Active file and selection are sent automatically.</p>
         </div>
         <div>
           <div class="w-12 h-12 rounded-full bg-brand/20 text-brand font-bold text-xl flex items-center justify-center mx-auto mb-4">2</div>
           <h3 class="font-semibold mb-2">Agent reasons</h3>
-          <p class="text-gray-400 text-sm">The backend agent loop plans steps, calls tools, and iterates until the task is done.</p>
+          <p class="text-gray-400 text-sm">The agent loop plans, searches the workspace, reads files, and iterates with the LLM until the task is complete.</p>
         </div>
         <div>
           <div class="w-12 h-12 rounded-full bg-brand/20 text-brand font-bold text-xl flex items-center justify-center mx-auto mb-4">3</div>
-          <h3 class="font-semibold mb-2">Apply changes</h3>
-          <p class="text-gray-400 text-sm">Review the inline action card and hit Apply — files are written and opened instantly.</p>
+          <h3 class="font-semibold mb-2">Review & apply</h3>
+          <p class="text-gray-400 text-sm">Approve each file write or command via inline action cards. Code blocks are applied to the editor automatically.</p>
         </div>
       </div>
     </div>
@@ -157,29 +167,33 @@
     </div>
   </section>
 
-  <!-- Install -->
-  <section id="install" class="py-20 px-6">
-    <div class="max-w-3xl mx-auto">
-      <h2 class="text-3xl font-bold text-center mb-12">Quick Start</h2>
-      <div class="space-y-4">
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <p class="text-xs text-gray-500 mb-2 font-mono">1. Clone & configure</p>
-          <pre class="text-sm text-green-400 font-mono overflow-x-auto">git clone https://github.com/jmrashed/adinusa-ai.git
-cd adinusa-ai
-cp backend/.env.example backend/.env</pre>
-        </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <p class="text-xs text-gray-500 mb-2 font-mono">2. Install & start backend</p>
-          <pre class="text-sm text-green-400 font-mono overflow-x-auto">bash scripts/install.sh
-cd backend && npm run dev</pre>
-        </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <p class="text-xs text-gray-500 mb-2 font-mono">3. Launch extension</p>
-          <pre class="text-sm text-green-400 font-mono overflow-x-auto">Open adinusa-ai/ in VS Code → Press F5</pre>
-        </div>
-      </div>
-    </div>
-  </section>
+   <!-- Install -->
+   <section id="install" class="py-20 px-6">
+     <div class="max-w-3xl mx-auto">
+       <h2 class="text-3xl font-bold text-center mb-12">Quick Start</h2>
+       <div class="space-y-4">
+         <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+           <p class="text-xs text-gray-500 mb-2 font-mono">1. Clone & configure</p>
+           <pre class="text-sm text-green-400 font-mono overflow-x-auto">git clone https://github.com/jmrashed/adinusa-ai.git
+ cd adinusa-ai
+ cp backend/.env.example backend/.env</pre>
+         </div>
+         <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+           <p class="text-xs text-gray-500 mb-2 font-mono">2. Install & start backend</p>
+           <pre class="text-sm text-green-400 font-mono overflow-x-auto">bash scripts/install.sh
+ cd backend && npm run dev</pre>
+         </div>
+         <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+           <p class="text-xs text-gray-500 mb-2 font-mono">3. Launch extension</p>
+           <pre class="text-sm text-green-400 font-mono overflow-x-auto">Open adinusa-ai/ in VS Code → Press F5</pre>
+         </div>
+         <div class="bg-gray-800 rounded-xl p-5 border border-gray-700">
+           <p class="text-xs text-gray-500 mb-2 font-semibold">Note</p>
+           <p class="text-sm text-gray-300">You must open a <strong class="text-white">workspace folder</strong> in VS Code before using Adinusa AI. The extension needs a project root to read/write files and execute commands safely.</p>
+         </div>
+       </div>
+     </div>
+   </section>
 
   <!-- Footer -->
   <footer class="border-t border-gray-800 py-10 px-6 text-center text-gray-500 text-sm">
