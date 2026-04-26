@@ -3,17 +3,27 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install pnpm
+RUN apk add --no-cache curl && \
+    corepack enable && \
+    corepack prepare pnpm@latest --activate
+
 # Copy package manifests
 COPY package*.json ./
 
 # Install all dependencies (including dev for build steps if needed later)
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 # Copy source
 COPY src/ ./src/
 
 # Stage 2: Production
 FROM node:20-alpine
+
+# Install pnpm
+RUN apk add --no-cache curl && \
+    corepack enable && \
+    corepack prepare pnpm@latest --activate
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -25,7 +35,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm ci --omit=dev && npm cache clean --force
+RUN pnpm install --frozen-lockfile --prod && pnpm store prune
 
 # Copy built application from builder
 COPY --from=builder /app/src ./src

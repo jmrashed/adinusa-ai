@@ -50,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Push active file name to sidebar webview
   const pushFileCtx = () =>
-    chatViewProvider.notifyFileContext(vscode.window.activeTextEditor?.document.fileName.split('/').pop());
+    chatViewProvider.notifyFileContext(vscode.window.activeTextEditor?.document.fileName.split('/').pop() ?? '');
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(pushFileCtx));
 
   // Re-render status bar when settings change
@@ -99,15 +99,15 @@ export function activate(context: vscode.ExtensionContext) {
           password: true,
           ignoreFocusOut: true,
         });
-        if (key) {
+      if (key) {
           await cfg.update(keyField, key, vscode.ConfigurationTarget.Global);
-          vscode.window.showInformationMessage(`Adinusa AI: Switched to ${PROVIDER_LABELS[provider]} ✓`);
+          void vscode.window.showInformationMessage(`Adinusa AI: Switched to ${PROVIDER_LABELS[provider]} ✓`);
+        } else {
+          void vscode.window.showInformationMessage(`Adinusa AI: Switched to ${PROVIDER_LABELS[provider]} ✓`);
         }
       } else {
-        vscode.window.showInformationMessage(`Adinusa AI: Switched to ${PROVIDER_LABELS[provider]} ✓`);
+        void vscode.window.showInformationMessage(`Adinusa AI: Switched to Ollama (local) ✓`);
       }
-    } else {
-      vscode.window.showInformationMessage(`Adinusa AI: Switched to Ollama (local) ✓`);
     }
 
     updateStatusBar(statusBar);

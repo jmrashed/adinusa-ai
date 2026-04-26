@@ -1,5 +1,3 @@
-import { describe, it, expect } from '@jest/globals';
-
 describe('Logger Utility', () => {
   it('should be a function or object', () => {
     // Placeholder test

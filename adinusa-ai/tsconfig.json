@@ -7,8 +7,9 @@
     "sourceMap": true,
     "strict": true,
     "moduleResolution": "Node16",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "isolatedModules": true
   },
-  "include": ["src"],
+  "include": ["src", "__tests__"],
   "exclude": ["node_modules", ".vscode-test"]
 }

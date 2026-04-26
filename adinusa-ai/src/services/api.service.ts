@@ -53,8 +53,8 @@ export async function sendChat(req: ChatRequest): Promise<ChatResponse> {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error((err as any).error ?? `Backend error: ${res.status}`);
+    const err = (await res.json().catch(() => ({ error: res.statusText }))) as { error?: string };
+    throw new Error(err.error ?? `Backend error: ${res.status}`);
   }
 
   return res.json() as Promise<ChatResponse>;

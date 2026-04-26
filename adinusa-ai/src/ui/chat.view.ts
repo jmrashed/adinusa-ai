@@ -20,38 +20,40 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.options = { enableScripts: true, localResourceRoots: [this._extensionUri] };
     webviewView.webview.html = this._getHtml();
 
-    webviewView.webview.onDidReceiveMessage(async (event) => {
-      if (event.type === 'healthCheck') {
-        try {
-          const res = await fetch(`${getBackendUrl()}/health`);
-          webviewView.webview.postMessage({ type: 'status', ok: res.ok, url: getBackendUrl() });
-        } catch {
-          webviewView.webview.postMessage({ type: 'status', ok: false });
+      webviewView.webview.onDidReceiveMessage(async (event: any) => {
+        if (event.type === 'healthCheck') {
+          try {
+            const res = await fetch(`${getBackendUrl()}/health`);
+            void webviewView.webview.postMessage({ type: 'status', ok: res.ok, url: getBackendUrl() });
+          } catch {
+            void webviewView.webview.postMessage({ type: 'status', ok: false });
+          }
+          return;
         }
-        return;
-      }
 
-      if (event.type === 'actionConfirm') {
-        try {
-          const results = await applyActions(event.actions);
-          webviewView.webview.postMessage({ type: 'actionDone', msgId: event.msgId, results });
-        } catch (e: any) {
-          webviewView.webview.postMessage({ type: 'actionError', msgId: event.msgId, text: e.message });
+        if (event.type === 'actionConfirm') {
+          try {
+            const results = await applyActions(event.actions);
+            void webviewView.webview.postMessage({ type: 'actionDone', msgId: event.msgId, results });
+          } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            void webviewView.webview.postMessage({ type: 'actionError', msgId: event.msgId, text: message });
+          }
+          return;
         }
-        return;
-      }
 
-      if (event.type !== 'chat') return;
+        if (event.type !== 'chat') return;
 
-      try {
-        const intent = event.intent ?? 'chat';
-        const res = await sendChat({ message: event.text, intent, context: getEditorContext(intent) });
-        webviewView.webview.postMessage({ type: 'reply', text: res.reply, actions: res.actions ?? [] });
-      } catch (e: any) {
-        logger.error(e.message);
-        webviewView.webview.postMessage({ type: 'error', text: e.message });
-      }
-    });
+        try {
+          const intent = event.intent ?? 'chat';
+          const res = await sendChat({ message: event.text, intent, context: getEditorContext(intent) });
+          void webviewView.webview.postMessage({ type: 'reply', text: res.reply, actions: res.actions ?? [] });
+        } catch (e: unknown) {
+          const message = e instanceof Error ? e.message : String(e);
+          logger.error(message);
+          void webviewView.webview.postMessage({ type: 'error', text: message });
+        }
+      });
   }
 
   focus() {
@@ -199,15 +201,15 @@ function renderMarkdown(raw) {
   const escaped = raw
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return escaped
-    .replace(/\`\`\`(\w*)\n?([\s\S]*?)\`\`\`/g, (_, lang, code) =>
+    .replace(/`{3}(\w*)\n?([\s\S]*?)`{3}/g, (_, lang, code) =>
       '<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>' + code.trim() + '</code></pre>')
-    .replace(/\`([^\`]+)\`/g, '<code>$1</code>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
     .replace(/^\- (.+)$/gm, '<li>$1</li>')
     .replace(/\n{2,}/g, '<br><br>')
     .replace(/\n/g, '<br>');

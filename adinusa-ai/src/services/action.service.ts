@@ -59,15 +59,15 @@ export async function applyActions(actions: AgentAction[]) {
       }
 
       throw new Error(`Unsupported action payload for ${action.tool}`);
-    } catch (e: any) {
-      const detail = e.message ?? String(e);
+    } catch (e: unknown) {
+      const detail = e instanceof Error ? e.message : String(e);
       results.push({
         id: action.id,
         tool: action.tool,
         status: 'failed',
         detail,
       });
-      vscode.window.showErrorMessage(`Action failed (${action.tool}): ${detail}`);
+      void vscode.window.showErrorMessage(`Action failed (${action.tool}): ${detail}`);
     }
   }
 
