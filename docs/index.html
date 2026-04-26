@@ -294,39 +294,72 @@
   </section>
 
   <!-- Providers -->
-  <section id="providers" class="py-32 px-6 bg-dark-900">
+  <section id="providers" class="py-32 px-6 bg-dark-800">
     <div class="max-w-6xl mx-auto text-center">
-      <h2 class="text-4xl md:text-5xl font-bold mb-4">Powered by your favorite LLM</h2>
-      <p class="text-gray-400 text-lg mb-16 max-w-2xl mx-auto">
-        Switch between providers anytime. Your API keys stay on your machine.
-      </p>
+      <div class="mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">Powered by your favorite LLM</h2>
+        <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+          Switch between providers anytime. Your API keys stay on your machine — no data leaves your control.
+        </p>
+      </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <div class="bg-dark-800 rounded-xl p-6 border border-white/5 hover:border-brand-500/50 transition-all group">
-          <div class="text-3xl mb-3">⚡</div>
-          <div class="font-semibold">GLM-4</div>
-          <div class="text-xs text-gray-500 mt-1">Zhipu AI</div>
+      <!-- Provider cards with larger icons and descriptions -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+        <!-- GLM-4 -->
+        <div class="group bg-dark-900 rounded-2xl p-6 border border-white/5 hover:border-brand-500/50 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10">
+          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+            <span class="text-2xl">⚡</span>
+          </div>
+          <div class="font-semibold text-lg mb-1">GLM-4</div>
+          <div class="text-xs text-brand-500 font-mono mb-2">Zhipu AI</div>
+          <p class="text-sm text-gray-500 leading-relaxed">Flash and standard models with strong code reasoning</p>
         </div>
-        <div class="bg-dark-800 rounded-xl p-6 border border-white/5 hover:border-brand-500/50 transition-all group">
-          <div class="text-3xl mb-3">🤖</div>
-          <div class="font-semibold">GPT-4</div>
-          <div class="text-xs text-gray-500 mt-1">OpenAI</div>
+
+        <!-- GPT-4 -->
+        <div class="group bg-dark-900 rounded-2xl p-6 border border-white/5 hover:border-brand-500/50 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10">
+          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+            <span class="text-2xl">🤖</span>
+          </div>
+          <div class="font-semibold text-lg mb-1">GPT-4</div>
+          <div class="text-xs text-brand-500 font-mono mb-2">OpenAI</div>
+          <p class="text-sm text-gray-500 leading-relaxed">Industry standard for code generation and analysis</p>
         </div>
-        <div class="bg-dark-800 rounded-xl p-6 border border-white/5 hover:border-brand-500/50 transition-all group">
-          <div class="text-3xl mb-3">🧠</div>
-          <div class="font-semibold">Claude</div>
-          <div class="text-xs text-gray-500 mt-1">Anthropic</div>
+
+        <!-- Claude -->
+        <div class="group bg-dark-900 rounded-2xl p-6 border border-white/5 hover:border-brand-500/50 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10">
+          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+            <span class="text-2xl">🧠</span>
+          </div>
+          <div class="font-semibold text-lg mb-1">Claude</div>
+          <div class="text-xs text-brand-500 font-mono mb-2">Anthropic</div>
+          <p class="text-sm text-gray-500 leading-relaxed">Advanced reasoning with strong safety alignment</p>
         </div>
-        <div class="bg-dark-800 rounded-xl p-6 border border-white/5 hover:border-brand-500/50 transition-all group">
-          <div class="text-3xl mb-3">✨</div>
-          <div class="font-semibold">Gemini</div>
-          <div class="text-xs text-gray-500 mt-1">Google</div>
+
+        <!-- Gemini -->
+        <div class="group bg-dark-900 rounded-2xl p-6 border border-white/5 hover:border-brand-500/50 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10">
+          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+            <span class="text-2xl">✨</span>
+          </div>
+          <div class="font-semibold text-lg mb-1">Gemini</div>
+          <div class="text-xs text-brand-500 font-mono mb-2">Google</div>
+          <p class="text-sm text-gray-500 leading-relaxed">Multimodal AI with extensive knowledge base</p>
         </div>
-        <div class="bg-dark-800 rounded-xl p-6 border border-white/5 hover:border-brand-500/50 transition-all group">
-          <div class="text-3xl mb-3">🦙</div>
-          <div class="font-semibold">Ollama</div>
-          <div class="text-xs text-gray-500 mt-1">Local models</div>
+
+        <!-- Ollama -->
+        <div class="group bg-dark-900 rounded-2xl p-6 border border-white/5 hover:border-brand-500/50 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10">
+          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+            <span class="text-2xl">🦙</span>
+          </div>
+          <div class="font-semibold text-lg mb-1">Ollama</div>
+          <div class="text-xs text-brand-500 font-mono mb-2">Local models</div>
+          <p class="text-sm text-gray-500 leading-relaxed">Run models locally — no API key required</p>
         </div>
+      </div>
+
+      <!-- Callout -->
+      <div class="mt-16 inline-flex items-center gap-3 px-5 py-3 rounded-full bg-brand-500/10 border border-brand-500/20 text-sm">
+        <svg class="w-5 h-5 text-brand-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+        <span class="text-gray-300">All API keys are stored locally in your VS Code settings. <strong class="text-white">No data is sent to any third party</strong> except the provider you choose.</span>
       </div>
     </div>
   </section>
