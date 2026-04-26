@@ -60,11 +60,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Run npm audit (backend)
-        run: cd backend && npm audit --audit-level=moderate
+      - name: Run audit (backend)
+        run: cd backend && pnpm audit --audit-level=moderate
 
-      - name: Run npm audit (extension)
-        run: cd adinusa-ai && npm audit --audit-level=moderate
+      - name: Run audit (extension)
+        run: cd adinusa-ai && pnpm audit --audit-level=moderate
 
   test:
     name: Test

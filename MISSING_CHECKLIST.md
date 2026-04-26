@@ -1,6 +1,6 @@
 # Adinusa AI — Missing Features & Improvements Checklist
 
-> **Generated:** 2026-04-27 | **Version:** 0.3.0
+> **Generated:** 2026-04-27 | **Version:** 0.4.0
 
 This checklist identifies missing, incomplete, or improvable items across the Adinusa AI project. Items are organized by category and priority.
 

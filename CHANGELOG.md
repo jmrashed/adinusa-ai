@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 - Security headers middleware for enhanced HTTP security
 - Request timeout middleware for improved reliability
 - Error handling middleware with centralized error management
-- ESLint configurations for consistent code style
+- ESLint configurations for consistent code style (root and backend)
 - EditorConfig for consistent editor settings across IDEs
 - VS Code launch and task configurations for development workflow
 - CODE_OF_CONDUCT.md, SECURITY.md, and contributing guidelines
@@ -26,10 +26,27 @@ All notable changes to this project will be documented in this file.
 - Open API specification for backend API documentation
 - Ecosystem configuration for process management
 - Cross-platform development environment setup
+- Structured logger utility for JSON-formatted logs
+- Backward-compatible logger wrapper
+- Environment variable validation at startup
+- Graceful shutdown handling for SIGTERM and SIGINT
+- Request body size limiting middleware
+- API route modularization
+- Dependency update automation via Dependabot
+- Pre-commit hooks for linting and formatting
+- Test scripts with coverage reporting
+- Build and package scripts for extension
+- Clean and reset scripts for development
 
 ### Fixed
 - Agent no longer executes `write_file` or `run_command` automatically — always requires user approval
 - Removed shadowed variable bug in panel.ts message handler (already fixed in 0.2.0)
+- Fixed version numbers in package.json files
+- Fixed missing ESLint configuration in root directory
+- Fixed missing test scripts in package.json
+- Fixed missing lint scripts configuration
+- Fixed missing Prettier configuration
+- Fixed missing editorconfig file
 
 ### Improved
 - Action approval flow now fully inline with no VS Code notification popup interruption
@@ -40,6 +57,31 @@ All notable changes to this project will be documented in this file.
 - Better error handling and logging throughout the application
 - Enhanced security posture with security headers and input validation
 - More maintainable codebase with consistent formatting and linting rules
+- Standardized dependency versions across workspaces
+- Improved Dockerfile with multi-stage build considerations
+- Added compression middleware for API responses
+- Added CORS configuration with specific allowed origins
+- Added rate limiting for AI endpoints
+- Added helmet security with customized CSP
+- Added structured logging capabilities
+- Added request ID correlation for distributed tracing
+- Added graceful shutdown procedures
+- Added environment validation before server startup
+- Added request timeout handling
+- Added error handling middleware with centralized management
+- Added security headers middleware for enhanced protection
+- Added OpenAPI documentation for API contract
+- Added ecosystem configuration for process management
+- Added Kubernetes manifests for orchestration
+- Added comprehensive test suites
+- Added linting and formatting automation
+- Added pre-commit hooks for code quality
+- Added version pinning for Node.js
+- Added automated dependency updates via Dependabot
+- Added security auditing in CI pipeline
+- Added test coverage reporting
+- Added extension packaging and build automation
+- Added clean and reset development utilities
 
 ## [0.2.0] - 2026-04-15
 
