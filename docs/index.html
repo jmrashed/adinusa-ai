@@ -151,13 +151,41 @@
   </section>
 
   <!-- Demo Screenshot -->
-  <section class="py-20 px-6 bg-dark-800">
+  <section class="py-32 px-6 bg-dark-900">
     <div class="max-w-6xl mx-auto">
-      <p class="text-center text-xs font-semibold tracking-widest text-brand-500 uppercase mb-8">See it in action</p>
-      <div class="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-        <div class="absolute inset-0 bg-gradient-to-b from-brand-500/5 to-transparent pointer-events-none" />
-        <img src="/assets/images/demo.png" alt="Adinusa AI demo screenshot" class="w-full h-auto relative" />
+      <div class="text-center mb-12">
+        <p class="text-xs font-semibold tracking-widest text-brand-500 uppercase mb-4">See it in action</p>
+        <h2 class="text-3xl md:text-4xl font-bold mb-3">Watch Adinusa AI in action</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">
+          See how the agent plans, searches, reads files, writes code, and executes commands — all from a simple prompt.
+        </p>
       </div>
+
+      <!-- Window chrome mockup -->
+      <div class="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-dark-800">
+        <!-- Window header -->
+        <div class="flex items-center gap-2 px-5 py-4 border-b border-white/5 bg-dark-900/50 backdrop-blur-sm">
+          <div class="flex gap-1.5">
+            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+          </div>
+          <div class="flex-1 text-center">
+            <span class="text-xs text-gray-500 font-mono">Adinusa AI — VS Code</span>
+          </div>
+        </div>
+
+        <!-- Screenshot -->
+        <div class="relative">
+          <img src="assets/images/demo.png" alt="Adinusa AI demo screenshot" class="w-full h-auto" />
+          <div class="absolute inset-0 bg-gradient-to-t from-dark-800/80 via-transparent to-transparent pointer-events-none"></div>
+        </div>
+      </div>
+
+      <!-- Callout -->
+      <p class="text-center text-sm text-gray-500 mt-8">
+        The agent <strong class="text-white">plans first</strong>, then searches the workspace, reads relevant files, and iterates until the task is complete.
+      </p>
     </div>
   </section>
 
