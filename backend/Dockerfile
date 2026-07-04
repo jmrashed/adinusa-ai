@@ -6,7 +6,7 @@ WORKDIR /app
 # Install pnpm
 RUN apk add --no-cache curl && \
     corepack enable && \
-    corepack prepare pnpm@latest --activate
+    corepack prepare pnpm@9.15.0 --activate
 
 # Copy workspace manifests (monorepo-wide lockfile lives at repo root)
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
@@ -24,7 +24,7 @@ FROM node:20-alpine
 # Install pnpm
 RUN apk add --no-cache curl && \
     corepack enable && \
-    corepack prepare pnpm@latest --activate
+    corepack prepare pnpm@9.15.0 --activate
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
