@@ -42,8 +42,6 @@ const ENV = {
   BODY_SIZE_LIMIT: process.env.BODY_SIZE_LIMIT || '2mb',
 };
 
-const CRITICAL_VARS = [];
-
 function validate() {
   const errors = [];
 
