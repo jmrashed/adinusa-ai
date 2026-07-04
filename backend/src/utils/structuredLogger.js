@@ -5,8 +5,6 @@
 
 'use strict';
 
-const { ENV } = require('../config/env');
-
 const LEVELS = {
   debug: 0,
   info: 1,
@@ -22,7 +20,10 @@ const COLORS = {
   reset: '\x1b[0m',
 };
 
-const CURRENT_LEVEL = LEVELS[ENV.LOG_LEVEL.toLowerCase()] ?? LEVELS.info;
+// Read directly from process.env (not ../config/env) to avoid a require cycle:
+// config/env -> utils/logger -> utils/structuredLogger -> config/env.
+const configuredLevel = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
+const CURRENT_LEVEL = LEVELS[configuredLevel.toLowerCase()] ?? LEVELS.info;
 const SERVICE = 'adinusa-ai-backend';
 
 function formatMessage(level, message, meta = {}) {
@@ -37,7 +38,7 @@ function formatMessage(level, message, meta = {}) {
   };
 
   // In production or when explicitly set, output JSON
-  if (ENV.NODE_ENV === 'production' || process.env.LOG_FORMAT === 'json') {
+  if (process.env.NODE_ENV === 'production' || process.env.LOG_FORMAT === 'json') {
     return JSON.stringify(logEntry);
   }
 

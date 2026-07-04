@@ -1,4 +1,4 @@
-const logger = require('./logger');
+const logger = require('../utils/logger');
 
 /**
  * Middleware to log incoming requests with request ID

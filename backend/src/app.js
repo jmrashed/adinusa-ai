@@ -7,7 +7,7 @@ const aiRoutes = require('./routes/ai.routes');
 const logger = require('./utils/logger');
 const requestIdMiddleware = require('./middleware/request-id.middleware');
 const requestLoggerMiddleware = require('./middleware/request-logger.middleware');
-const { ENV } = require('./config/env');
+const { ENV, validate } = require('./config/env');
 const compression = require('compression');
 
 // Validate environment configuration before starting
@@ -73,30 +73,32 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-const PORT = process.env.PORT ?? 3002;
-const server = app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT ?? 3002;
+  const server = app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    logger.info('SIGTERM signal received: closing HTTP server');
+    server.close(() => {
+      logger.info('HTTP server closed');
+      process.exit(0);
+    });
   });
-});
 
-process.on('SIGINT', () => {
-  logger.info('SIGINT signal received: closing HTTP server');
-  server.close(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
+  process.on('SIGINT', () => {
+    logger.info('SIGINT signal received: closing HTTP server');
+    server.close(() => {
+      logger.info('HTTP server closed');
+      process.exit(0);
+    });
   });
-});
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  logger.error('Unhandled Promise Rejection:', err);
-  // Don't exit - let the process continue
-});
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (err) => {
+    logger.error('Unhandled Promise Rejection:', err);
+    // Don't exit - let the process continue
+  });
+}
 
 module.exports = app;
