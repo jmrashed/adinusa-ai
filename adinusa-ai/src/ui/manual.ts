@@ -28,7 +28,7 @@ export class ManualPanel {
   dispose() {
     ManualPanel.currentPanel = undefined;
     this._panel.dispose();
-    this._disposables.forEach(d => d.dispose());
+    this._disposables.forEach(d => { d.dispose(); });
   }
 
   private _getHtml(): string {

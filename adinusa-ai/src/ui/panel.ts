@@ -1,8 +1,15 @@
 import * as vscode from 'vscode';
-import { sendChat } from '../services/api.service';
+import { sendChat, AgentAction } from '../services/api.service';
 import { getEditorContext } from '../services/context.service';
 import { applyActions } from '../services/action.service';
 import { logger } from '../utils/logger';
+
+interface WebviewMessage {
+  type: 'actionConfirm' | 'chat';
+  actions?: AgentAction[];
+  msgId?: string;
+  text?: string;
+}
 
 export class ChatPanel {
   static currentPanel: ChatPanel | undefined;
@@ -28,32 +35,36 @@ export class ChatPanel {
     this._extensionUri = extensionUri;
     this._panel.webview.html = this._getHtml();
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-    this._panel.webview.onDidReceiveMessage(async (msg) => {
-      if (msg.type === 'actionConfirm') {
-        try {
-          const results = await applyActions(msg.actions);
-          this._panel.webview.postMessage({ type: 'actionDone', msgId: msg.msgId, results });
-        } catch (e: any) {
-          this._panel.webview.postMessage({ type: 'actionError', msgId: msg.msgId, text: e.message });
+    this._panel.webview.onDidReceiveMessage((msg: WebviewMessage) => {
+      void (async () => {
+        if (msg.type === 'actionConfirm') {
+          try {
+            const results = await applyActions(msg.actions ?? []);
+            void this._panel.webview.postMessage({ type: 'actionDone', msgId: msg.msgId, results });
+          } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            void this._panel.webview.postMessage({ type: 'actionError', msgId: msg.msgId, text: message });
+          }
+          return;
         }
-        return;
-      }
 
-      if (msg.type !== 'chat') return;
-      try {
-        const res = await sendChat({ message: msg.text, intent: 'chat', context: getEditorContext('chat') });
-        this._panel.webview.postMessage({ type: 'reply', text: res.reply, actions: res.actions });
-      } catch (e: any) {
-        logger.error(e.message);
-        this._panel.webview.postMessage({ type: 'error', text: e.message });
-      }
+        if (msg.type !== 'chat') return;
+        try {
+          const res = await sendChat({ message: msg.text ?? '', intent: 'chat', context: getEditorContext('chat') });
+          void this._panel.webview.postMessage({ type: 'reply', text: res.reply, actions: res.actions ?? [] });
+        } catch (e: unknown) {
+          const message = e instanceof Error ? e.message : String(e);
+          logger.error(message);
+          void this._panel.webview.postMessage({ type: 'error', text: message });
+        }
+      })();
     }, null, this._disposables);
   }
 
   dispose() {
     ChatPanel.currentPanel = undefined;
     this._panel.dispose();
-    this._disposables.forEach(d => d.dispose());
+    this._disposables.forEach(d => { d.dispose(); });
   }
 
   private _getHtml(): string {
@@ -118,14 +129,14 @@ export class ChatPanel {
       // Escape HTML first
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       // Code blocks
-      .replace(/\`\`\`(\w*)\n?([\s\S]*?)\`\`\`/g, (_,lang,code) =>
+      .replace(/\`\`\`(\\w*)\n?([\\s\\S]*?)\`\`\`/g, (_,lang,code) =>
         '<pre><code class="lang-'+lang+'">'+code.trim()+'</code></pre>')
       // Inline code
       .replace(/\`([^\`]+)\`/g, '<code>$1</code>')
       // Bold
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>')
       // Italic
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/\\*(.+?)\\*/g, '<em>$1</em>')
       // Headers
       .replace(/^### (.+)$/gm, '<h3>$1</h3>')
       .replace(/^## (.+)$/gm, '<h2>$1</h2>')
@@ -133,8 +144,8 @@ export class ChatPanel {
       // Blockquote
       .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
       // Unordered list
-      .replace(/^\- (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+      .replace(/^\\- (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\\/li>)/s, '<ul>$1</ul>')
       // Line breaks (not inside pre)
       .replace(/\n{2,}/g, '</p><p>')
       .replace(/\n/g, '<br>');

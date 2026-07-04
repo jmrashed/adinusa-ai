@@ -1,9 +1,17 @@
 import * as vscode from 'vscode';
-import { sendChat } from '../services/api.service';
+import { sendChat, ChatRequest, AgentAction } from '../services/api.service';
 import { getEditorContext } from '../services/context.service';
 import { applyActions } from '../services/action.service';
 import { getBackendUrl } from '../config/settings';
 import { logger } from '../utils/logger';
+
+interface WebviewMessage {
+  type: 'healthCheck' | 'actionConfirm' | 'chat';
+  actions?: AgentAction[];
+  msgId?: string;
+  intent?: ChatRequest['intent'];
+  text?: string;
+}
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
   static readonly viewId = 'adinusa-ai.chatView';
@@ -20,7 +28,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.options = { enableScripts: true, localResourceRoots: [this._extensionUri] };
     webviewView.webview.html = this._getHtml();
 
-      webviewView.webview.onDidReceiveMessage(async (event: any) => {
+      webviewView.webview.onDidReceiveMessage((event: WebviewMessage) => {
+        void (async () => {
         if (event.type === 'healthCheck') {
           try {
             const res = await fetch(`${getBackendUrl()}/health`);
@@ -33,7 +42,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
         if (event.type === 'actionConfirm') {
           try {
-            const results = await applyActions(event.actions);
+            const results = await applyActions(event.actions ?? []);
             void webviewView.webview.postMessage({ type: 'actionDone', msgId: event.msgId, results });
           } catch (e: unknown) {
             const message = e instanceof Error ? e.message : String(e);
@@ -46,13 +55,14 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
         try {
           const intent = event.intent ?? 'chat';
-          const res = await sendChat({ message: event.text, intent, context: getEditorContext(intent) });
+          const res = await sendChat({ message: event.text ?? '', intent, context: getEditorContext(intent) });
           void webviewView.webview.postMessage({ type: 'reply', text: res.reply, actions: res.actions ?? [] });
         } catch (e: unknown) {
           const message = e instanceof Error ? e.message : String(e);
           logger.error(message);
           void webviewView.webview.postMessage({ type: 'error', text: message });
         }
+        })();
       });
   }
 
@@ -60,12 +70,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     if (this._view) {
       this._view.show(true);
     } else {
-      vscode.commands.executeCommand('adinusa-ai.chatView.focus');
+      void vscode.commands.executeCommand('adinusa-ai.chatView.focus');
     }
   }
 
   notifyFileContext(fileName: string | undefined) {
-    this._view?.webview.postMessage({ type: 'fileContext', fileName: fileName ?? '' });
+    void this._view?.webview.postMessage({ type: 'fileContext', fileName: fileName ?? '' });
   }
 
   private _getHtml(): string {
@@ -201,16 +211,16 @@ function renderMarkdown(raw) {
   const escaped = raw
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return escaped
-    .replace(/`{3}(\w*)\n?([\s\S]*?)`{3}/g, (_, lang, code) =>
+    .replace(/\`{3}(\\w*)\n?([\\s\\S]*?)\`{3}/g, (_, lang, code) =>
       '<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>' + code.trim() + '</code></pre>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\`([^\`]+)\`/g, '<code>$1</code>')
+    .replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>')
+    .replace(/\\*(.+?)\\*/g, '<em>$1</em>')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
     .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
-    .replace(/^\- (.+)$/gm, '<li>$1</li>')
+    .replace(/^\\- (.+)$/gm, '<li>$1</li>')
     .replace(/\n{2,}/g, '<br><br>')
     .replace(/\n/g, '<br>');
 }
