@@ -8,14 +8,15 @@ RUN apk add --no-cache curl && \
     corepack enable && \
     corepack prepare pnpm@latest --activate
 
-# Copy package manifests
-COPY package*.json ./
+# Copy workspace manifests (monorepo-wide lockfile lives at repo root)
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY backend/package.json ./backend/
 
-# Install all dependencies (including dev for build steps if needed later)
-RUN pnpm install --frozen-lockfile
+# Install only the backend workspace's dependencies
+RUN pnpm install --frozen-lockfile --filter adinusa-ai-backend...
 
 # Copy source
-COPY src/ ./src/
+COPY backend/src/ ./backend/src/
 
 # Stage 2: Production
 FROM node:20-alpine
@@ -31,14 +32,17 @@ RUN addgroup -g 1001 -S nodejs && \
 
 WORKDIR /app
 
-# Copy package manifests
-COPY package*.json ./
+# Copy workspace manifests
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY backend/package.json ./backend/
 
 # Install only production dependencies
-RUN pnpm install --frozen-lockfile --prod && pnpm store prune
+RUN pnpm install --frozen-lockfile --prod --filter adinusa-ai-backend... && pnpm store prune
 
 # Copy built application from builder
-COPY --from=builder /app/src ./src
+COPY --from=builder /app/backend/src ./backend/src
+
+WORKDIR /app/backend
 
 # Change ownership to non-root user
 RUN chown -R nodejs:nodejs /app

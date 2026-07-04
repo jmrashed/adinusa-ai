@@ -6,35 +6,35 @@ This checklist identifies missing, incomplete, or improvable items across the Ad
 
 ---
 
-## 📦 **1. Testing** ⚠️ CRITICAL GAP
+## 📦 **1. Testing** ⚠️ HIGH PRIORITY (partially resolved)
 
-- [ ] **No test framework configured** — Jest, Vitest, or Mocha not set up
-- [ ] **Zero unit tests** — No coverage for `agent.service`, `llm.service`, tools, or UI components
+- [x] **Test framework configured** — Jest set up in both `backend` and `adinusa-ai`
+- [ ] **Thin unit test coverage** — Only 1 test file per package; `agent.service`, `llm.service`, tools, and UI components mostly untested
 - [ ] **Zero integration tests** — No API endpoint tests (`/ai/chat`, `/health`)
 - [ ] **Zero E2E tests** — No VS Code extension integration tests
-- [ ] **No test scripts** in `backend/package.json` or `adinusa-ai/package.json`
-- [ ] **No coverage reporting** — No Istanbul/nyc, c8, or coverage thresholds
+- [x] **Test scripts present** in `backend/package.json` and `adinusa-ai/package.json`
+- [x] **Coverage reporting present** — `test:coverage` scripts + codecov upload in CI
 - [ ] **No mock LLM provider** — Cannot test agent without real API calls
 - [ ] **No test fixtures/sample data** — No sample files, prompts, or responses
 
-**Priority:** **CRITICAL** — Production code with zero automated tests is high-risk.
+**Priority:** **HIGH** — Framework and scripts exist; actual coverage is still thin.
 
 ---
 
-## 🤖 **2. CI/CD & Automation** ⚠️ CRITICAL GAP
+## 🤖 **2. CI/CD & Automation** ⚠️ MEDIUM PRIORITY (mostly resolved)
 
-- [ ] **No GitHub Actions workflows** — `.github/workflows/` directory empty
-- [ ] **No automated testing on PR** — PRs not validated
-- [ ] **No automated linting** — ESLint not run on commit/PR
-- [ ] **No type-check enforcement** — `npm run check-types` not validated in CI
-- [ ] **No automated builds** — Extension `vsix` not built automatically
+- [x] **GitHub Actions workflows present** — `.github/workflows/ci.yml` (lint, typecheck, audit, test, build, docker-build)
+- [x] **Automated testing on PR** — `test` job runs on push/PR
+- [x] **Automated linting** — `lint-and-typecheck` job
+- [x] **Type-check enforcement** — `check-types` run for `adinusa-ai`
+- [x] **Automated builds** — extension packaged + `.vsix` uploaded as artifact in `build` job
 - [ ] **No release automation** — Manual version bumps and releases
-- [ ] **No pre-commit hooks** — `.husky/` not present, no `lint-staged`
+- [x] **Pre-commit hooks present** — husky + lint-staged configured
 - [ ] **No dependabot/renovate** — Dependencies not auto-updated
-- [ ] **No CI for Docker image** — Backend image not built/pushed automatically
+- [x] **CI for Docker image** — `docker-build` job builds backend image (not pushed)
 - [ ] **No deployment pipeline** — Manual deployment to Vercel/production
 
-**Priority:** **CRITICAL** — No quality gates or automation in place.
+**Priority:** **MEDIUM** — Core CI in place; release automation and dependency bots still missing.
 
 ---
 

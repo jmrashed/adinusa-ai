@@ -95,15 +95,13 @@ jobs:
         run: pnpm --filter "${{ matrix.package }}" test
 
       - name: Run tests with coverage
-        if: matrix.package == 'backend'
-        run: pnpm --filter backend test:coverage
+        run: pnpm --filter "${{ matrix.package }}" test:coverage
 
       - name: Upload coverage reports
-        if: matrix.package == 'backend'
         uses: codecov/codecov-action@v4
         with:
-          files: ./backend/coverage/lcov.info
-          flags: unittests
+          files: ./${{ matrix.package }}/coverage/lcov.info
+          flags: ${{ matrix.package }}
           name: codecov-umbrella
           fail_ci_if_error: false
 
@@ -134,6 +132,15 @@ jobs:
       - name: Check build artifacts
         run: ls -la adinusa-ai/dist/
 
+      - name: Package VSIX
+        run: cd adinusa-ai && npx vsce package --no-dependencies
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: adinusa-ai-vsix
+          path: adinusa-ai/*.vsix
+
   docker-build:
     name: Docker Build (Backend)
     runs-on: ubuntu-latest
@@ -148,7 +155,8 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
+          context: .
+          file: backend/Dockerfile
           push: false
           tags: adinusa-ai-backend:${{ github.sha }}
           cache-from: type=gha

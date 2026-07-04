@@ -2,6 +2,16 @@
   "name": "adinusa-ai-monorepo",
   "private": true,
   "description": "Adinusa AI monorepo - VS Code extension with autonomous AI agent backend",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jmrashed/adinusa-ai.git"
+  },
+  "author": {
+    "name": "Md Rasheduzzaman",
+    "email": "jmrashed@gmail.com",
+    "url": "https://github.com/jmrashed"
+  },
   "workspaces": [
     "adinusa-ai",
     "backend"
