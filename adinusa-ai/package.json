@@ -4,6 +4,7 @@
   "description": "An autonomous AI coding agent inside VS Code powered by GLM-4. Chat, generate, explain, fix code and execute agent actions.",
   "version": "0.4.0",
   "publisher": "jmrashed",
+  "license": "MIT",
   "author": {
     "name": "Md Rasheduzzaman",
     "email": "jmrashed@gmail.com",
